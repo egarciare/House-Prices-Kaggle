@@ -687,7 +687,11 @@ for (i in 1:ncol(train)) {
 ```
 
 
+2-3- Tot seguit, comprovem la correlació entre els diferents atributs numèrics respecte a l'atribut SalePrice, aplicant la funció cor() que genera una matriu amb els percentatges de correlació entre les variables seleccionades.
 
+```{r pressure, echo=FALSE}
+cor(train[,c('OverallQual','OverallCond','YearBuilt','YearRemodAdd','MasVnrArea','BsmtFinSF1','BsmtFinSF2','BsmtUnfSF','TotalBsmtSF','1stFlrSF','2ndFlrSF','LowQualFinSF','GrLivArea','BsmtFullBath','BsmtHalfBath','FullBath','HalfBath','BedroomAbvGr','KitchenAbvGr','TotRmsAbvGrd','Fireplaces','GarageYrBlt','GarageCars','GarageArea','WoodDeckSF','OpenPorchSF','EnclosedPorch','3SsnPorch','ScreenPorch','PoolArea','MiscVal','MoSold','YrSold','SalePrice')], train['SalePrice'])
+```
 
 
 Tractament d'outliers
