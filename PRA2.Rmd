@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(knitr.duplicate.label = "allow")
 ```
 
 ## R Markdown
@@ -34,21 +35,19 @@ library(ggfortify)
 library(viridis)
 library(discretization)
 library(fpc)
-if(!require(ggplot2)){
-    install.packages('ggplot2', repos='http://cran.us.r-project.org')
-    library(ggplot2)
-}
-if(!require(nortest)){
-    install.packages('nortest', repos='http://cran.us.r-project.org')
-    library(nortest)
-}
+library(nortest)
+
+#if(!require(nortest)){
+ #   install.packages('nortest', repos='http://cran.us.r-project.org')
+ #   library(nortest)
+#}
 
 
 ##library(devtools)
 ```
 
 S'assignen a variables el dataset de train i el de test
-```{r cars}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 #summary(cars)
 train <- read_csv('HousePrices/train.csv' )
 test <- read_csv("HousePrices/test.csv")
@@ -57,16 +56,20 @@ test <- read_csv("HousePrices/test.csv")
 1-Exploració del dataset
 ========================
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
 names(train)
+
 ```
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 summary(train)
 ```
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
 str(train)
+
 ```
 
 
@@ -581,7 +584,7 @@ VALORS NA
 
 Anàlisi dels valors NA en el total d'atributs del dataset de training:
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 sapply(train, function(x) sum(is.na(x)))
 ```
 
@@ -625,7 +628,7 @@ REDUCCIO DE DIMENSIONALITAT
 Donat que es té una gran quantitat d'atributs: 81 atributs es fa una reducció de la dimensionalitat.
 1-Donat que tenim 1460 observacions, es prescindeix dels atributs amb un nombre molt elevat de NA. (where NA >1000 NA) --> Alley, PoolQC, Fence, MiscFeature
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 train = subset(train, select = -c(Alley,PoolQC,Fence,MiscFeature) )
 ```
 2- Abans de fer matrius de correlació per a identificar i prescidir d'atributs amb una alta correlació entre ells (colinealitat) o amb molt poca correlació amb la variable Sale Price, es fa una prova de normalitat i homoscedasticitat.
@@ -633,30 +636,30 @@ train = subset(train, select = -c(Alley,PoolQC,Fence,MiscFeature) )
 2-1-Normalitat de Sale Price que és la variable dependent.
 
 Histograma: Per a veure les frequêncies. Es divideix per 1000 per a fer llegibles els preus. Els preus més freqüents estan entre 100k i 200k
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 hist(train$SalePrice/1000, main="Sale Price")
 ```
 
 Visualment no sembla seguir una distribució normal
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 qqnorm(train$SalePrice, main="SalePrice") 
 qqline(train$SalePrice,col=2)
 ```
 
 Es confirma la manca de normalitat amb els tests de Kolmogorov-Smirnov i Shapiro-Wilk.
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 ks.test(train$SalePrice, pnorm, mean(train$SalePrice), sd(train$SalePrice))
 ```
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 shapiro.test(train$SalePrice)
 ```
-veiem com el p-value és < 0.05, el qual vol dir que la Hipòtesi 0 no és cumpleix i per tant podem confirmar que hi ha un manca de normalitat.
+veiem com el p-value és menor a 0.05, el qual vol dir que la Hipòtesi 0 no és cumpleix i per tant podem confirmar que hi ha un manca de normalitat.
 
 
 2-2- A continuació es fa la prova de normalitat de les variables numèriques usant el mètode de Shapiro-Wilk:
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 library(nortest)
 train <- as.data.frame(train)
 ##---- **** encara no funciona!
@@ -672,11 +675,11 @@ for (i in 1:ncol(train)) {
                 #  print(col.names[i])
                # print (p_val)
                 if (p_val < alpha) {
-                        cat (paste("No Normal: --> ", col.names[i]),"\r\n")
+                        cat (paste("No Normal: -- ", col.names[i]),"\r\n")
 # Format output if (i < ncol(automoviles) - 1) cat(", ") if (i %% 3 == 0) cat("\n")
                 }
                else{
-                       cat (paste("Normal: --> ", col.names[i]),"\r\n")
+                       cat (paste("Normal: -- ", col.names[i]),"\r\n")
                }
                
         }
@@ -688,7 +691,7 @@ Per tant sembla que cap de les variables numèriques no segueix una distribució
 
 2-3- Tot seguit, comprovem la correlació entre els diferents atributs numèrics respecte a l'atribut SalePrice, aplicant la funció cor() que genera una matriu amb els percentatges de correlació entre les variables seleccionades.
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 cor(train[,c('OverallQual','OverallCond','YearBuilt','YearRemodAdd','MasVnrArea','BsmtFinSF1','BsmtFinSF2','BsmtUnfSF','TotalBsmtSF','1stFlrSF','2ndFlrSF','LowQualFinSF','GrLivArea','BsmtFullBath','BsmtHalfBath','FullBath','HalfBath','BedroomAbvGr','KitchenAbvGr','TotRmsAbvGrd','Fireplaces','GarageYrBlt','GarageCars','GarageArea','WoodDeckSF','OpenPorchSF','EnclosedPorch','3SsnPorch','ScreenPorch','PoolArea','MiscVal','MoSold','YrSold','SalePrice')], train['SalePrice'])
 ```
 
@@ -696,7 +699,7 @@ cor(train[,c('OverallQual','OverallCond','YearBuilt','YearRemodAdd','MasVnrArea'
 En aquest cas com els atributs numèrics no segueixen una distribució normal, s'usa Spearman per a fer una matriu de correlació de les variables quantitatives amb la variable Sale Price. Prèviament es normalitzen els valors usant el mètode scale que usa una normalització de tipus z-score.
 
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 train.scaled <- scale(train[,c('OverallQual','OverallCond','YearBuilt','YearRemodAdd','MasVnrArea','BsmtFinSF1','BsmtFinSF2','BsmtUnfSF','TotalBsmtSF','1stFlrSF','2ndFlrSF','LowQualFinSF','GrLivArea','BsmtFullBath','BsmtHalfBath','FullBath','HalfBath','BedroomAbvGr','KitchenAbvGr','TotRmsAbvGrd','Fireplaces','GarageYrBlt','GarageCars','GarageArea','WoodDeckSF','OpenPorchSF','EnclosedPorch','3SsnPorch','ScreenPorch','PoolArea','MiscVal','MoSold','YrSold','SalePrice')])
 
 #es converteix a data frame
@@ -706,7 +709,7 @@ train.scaled <- as.data.frame(scale(train.scaled))
 
 
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 corr_matrix <- matrix(nc = 2, nr = 0) 
 colnames(corr_matrix) <- c("estimate", "p-value")
 
@@ -753,7 +756,7 @@ MiscVal
 MoSold
 YrSold
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 train = subset(train, select = -c(OverallCond,BsmtFinSF2,BsmtUnfSF,LowQualFinSF,
 BsmtHalfBath,BsmtHalfBath,KitchenAbvGr,`3SsnPorch`,ScreenPorch,PoolArea,
 MiscVal,MoSold,YrSold) )
@@ -767,57 +770,103 @@ IDENTIFICACIÓ:
 
 1-Variable de classe-dependent: Sale Price
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 summary(train$SalePrice)
 ```
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
 boxplot.stats(train$SalePrice)$out
 ```
 
-Observem com la majoria d'outliers són preus alts comparats amb la mitja que és de 163000. 
+Observem com la majoria d'outliers són preus alts comparats amb la mitja que és de 163000. Es donen per valors vàlids, donat que s'observen característiques d'alt standing, el que fa suposar que els valors són vàlids
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+train.data = train[c("OverallQual","GrLivArea","YearBuilt","GarageCars","GarageArea","SalePrice")]
+
+filter(train.data,SalePrice %in% (boxplot.stats(train$SalePrice)$out))
+
+```
 
 
 2-Variables independents:
 
 Probablement cases del segle passat.
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 boxplot.stats(train$YearBuilt)$out
 ```
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 bp <-boxplot(train$BsmtFinSF1,main="Type 1 finished square feet") 
 bp$out
 #boxplot.stats(train$BsmtFinSF1)$out
 ```
 
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 boxplot.stats(train$TotalBsmtSF)$out
 ```
-Hi ha o un total de metres quadrats de la basement area (sotano) molt gran > 2000 o bé 0
+Hi ha o un total de metres quadrats de la basement area (sotan) molt gran > 2000 o bé no hi ha sòtan i és 0
 
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 boxplot.stats(train$`1stFlrSF`)$out
 ```
 
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 boxplot.stats(train$`2ndFlrSF`)$out
 ```
-
-(.....)
-
-TRACTAMENT d'OUTLIERS:
-analitzar quin mètode aplicar (KNN, missforest, o més simples com mean, etc) o si té sentit deixar els valors perquè no es detecta cap error, sinó que són valors reals.
-
-```{r pressure, echo=FALSE}
-a
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot.stats(train$LowQualFinSF)$out
+```
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot.stats(train$GrLivArea)$out
 ```
 
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot.stats(train$TotRmsAbvGrd)$out
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot.stats(train$Bedroom)$out
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot.stats(train$Fireplaces)$out
+```
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot.stats(train$GarageYrBlt)$out
+```
+quan no hi ha garatge l'any de construcció s'emplena amb un 0 que seria un outlier.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot.stats(train$GarageCars)$out
+```
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot.stats(train$GarageArea)$out
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot.stats(train$WoodDeckSF)$out
+```
+(Wood deck area in square feet outliers)
 
 
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot.stats(train$OpenPorchSF)$out
+```
+ (Open porch area in square feet outliers)
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+boxplot.stats(train$EnclosedPorch)$out
+```
+
+Enclosed porch area in square feet outliers: La mitja són 21.95 i el màxim 552 no havent-hi ni primer ni tercer quartil. Sembla un atribut molt volàtil.
+
+
+TRACTAMENT d'OUTLIERS:
+Tots el outliers analitzats tenen sentint dintre del domini de cada atribut, per tant es decideix no aplicar cap mètode corrector.
 
 
 
@@ -825,132 +874,57 @@ CREACIÓ DE NOVES VARIABLES NUMÈRIQUES A PARTIR DE LES CATEGÒRIQUES
 ===================================================================
 *semblant aL que es fa al tutorial: Fun with Real Estate Data (Tutorial)
 https://www.kaggle.com/skirmer/fun-with-real-estate-data
+
 Donat que la variable de classe Sales Price és una variable contínua, es vol aproximar la relació de dependència lineal entre Sales Price i la resta de variables independents. 
 A partir d'aquests camps categòrics es creen nous camps numèrics. Per nomenclatura comencen per vn (versió numèrica)
+
 LotShape
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 train$vnLotShape[train$LotShape == "IR3"] <- 1
 train$vnLotShape[train$LotShape == "IR2"] <- 2
 train$vnLotShape[train$LotShape == "IR1"] <- 3
 train$vnLotShape[train$LotShape == "Reg"] <- 4
 ```
-```{r pressure, echo=FALSE}
-a
-```
+
 PREGUNTES
 ==========
 PRINCIPAL segons competició de Kaggle: Predicció de vendes de les cases en el dataset de test, enviant un fitxer amb el id de casa i el preu de venda predit
 1-Quina és la predicció de vendes en el data set de test?
 2-Influeix més els squares meters o l'any de construcció sobre el preu? (Comparació de grups independents)
 3- Es el barri (neighbourhood) determinant en el preu de les cases.
+
 ESBORRANY
 ==========
 Para fer agrupacions per un atribut i veure les vendes, e.g.
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 housestyle_price <- summarize(group_by(train, HouseStyle),
           mean(SalePrice, na.rm=T))
 housestyle_price
 ```
-```{r pressure, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 table(train$Street)
 ```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
-```{r pressure, echo=FALSE}
-a
-```
+
+
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
 WEBGRAPHY
 ==========
 HousePrices - kaggle
 https://www.kaggle.com/c/house-prices-advanced-regression-techniques/overview
+
 HousePrices - kaggle - Tutorials
 https://www.kaggle.com/c/house-prices-advanced-regression-techniques/overview/tutorials
+
 HousePrices - Kaggle - Start Here - Visualization and Model Stacking
 https://www.kaggle.com/rp1611/start-here-visualization-and-model-stacking
+
 Trabajo de Fin de Grado - ESTUDIO DE TÉCNICAS SUPERVISADAS DE REDUCCIÓN
 DE DIMENSIONALIDAD PARA PROBLEMAS DE CLASIFICACIÓN - Álvaro Soriano Maganto  2016-2017
 https://e-archivo.uc3m.es/bitstream/handle/10016/26504/TFG_Alvaro_Soriano_Maganto.pdf
+
 The most common dimension techniques - RPubs
 https://rpubs.com/Saskia/520216
+
 Análisis de Regresión - Alfonso Novales - Departamente de Economía Cuantitativa 2010
 https://www.ucm.es/data/cont/docs/518-2013-11-13-Analisis%20de%20Regresion.pdf
