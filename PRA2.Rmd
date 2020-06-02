@@ -869,21 +869,512 @@ TRACTAMENT d'OUTLIERS:
 Tots el outliers analitzats tenen sentint dintre del domini de cada atribut, per tant es decideix no aplicar cap mètode corrector.
 
 
-
 CREACIÓ DE NOVES VARIABLES NUMÈRIQUES A PARTIR DE LES CATEGÒRIQUES
 ===================================================================
-*semblant aL que es fa al tutorial: Fun with Real Estate Data (Tutorial)
-https://www.kaggle.com/skirmer/fun-with-real-estate-data
 
-Donat que la variable de classe Sales Price és una variable contínua, es vol aproximar la relació de dependència lineal entre Sales Price i la resta de variables independents. 
-A partir d'aquests camps categòrics es creen nous camps numèrics. Per nomenclatura comencen per vn (versió numèrica)
+Abans hem trobat la correlació de les variables numèriques amb SalePrice fent servir la funció cor() i la correlació d'Spearman. Ara, intentarem fer el mateix però amb les variables categòriques.
 
-LotShape
-```{r echo=TRUE, message=FALSE, warning=FALSE}
-train$vnLotShape[train$LotShape == "IR3"] <- 1
-train$vnLotShape[train$LotShape == "IR2"] <- 2
-train$vnLotShape[train$LotShape == "IR1"] <- 3
+Per tal d'aconseguir-ho crearem nous atributs numèrics a partir dels atributs categòrics existents. Això ho podrem fer revisant cadascuna de les variables i definint uns valors numèrics que descriguin de forma equivalent les categories representades.
+
+La nomenclatura que farem servir per assignar aquests nous atributs serà **vn** al principi del nom, per tal d'indicar que es tracta d'un valor numèric.
+
+Començarem per la variable Street, que té dos possibles valors: Grvl o Pave; és a dir el camí d'accés a la vivenda pot ser de grava o pavimentat.
+
+```{r vn_Street, echo=FALSE}
+#Comprovem els possibles valors de la variable Street
+table(train$Street)
+
+#Creem la nova variable numèrica assignant 1 o 0 en funció de si el carrer està pavimentat (1) o no (0)
+train$vnStreet[train$Street == "Pave"] <- 1
+train$vnStreet[train$Street != "Pave"] <- 0
+```
+
+L'atribut LotShape ens descriu la forma de la vivenda en 4 nivells desde regular (millor) fins a irregular (pitjor).
+
+```{r vn_LotShape, echo=FALSE}
+#Comprovem els possibles valors de la variable LotShape
+table(train$LotShape)
+
+#Creem la nova variable numèrica que pot agafar 4 possibles valors: regular(4), una mica irregular (3), bastant irregular (2), irregular (1)
 train$vnLotShape[train$LotShape == "Reg"] <- 4
+train$vnLotShape[train$LotShape == "IR1"] <- 3
+train$vnLotShape[train$LotShape == "IR2"] <- 2
+train$vnLotShape[train$LotShape == "IR3"] <- 1
+```
+
+LandContour indica el desnivell de la vivenda.
+
+```{r vn_LandContour, echo=FALSE}
+#Comprovem els possibles valors de la variable LandContour
+table(train$LandContour)
+
+#Creem la nova variable numèrica en la que considerarem únicament dos possibles valors: a nivell (1) o amb desnivell (0)
+train$vnLandContour[train$LandContour == "Lvl"] <- 1
+train$vnLandContour[train$LandContour != "Lvl"] <- 0
+```
+
+Utilities descriu els serveis de que consta la vivenda.
+
+```{r vn_Utilities, echo=FALSE}
+#Comprovem els possibles valors de la variable Utilities
+table(train$Utilities)
+
+#La nova variable numèrica prendrà 4 possibles valors: AllPub(4), NoSewr(3), NoSeWa(2), ELO(1)
+train$vnUtilities[train$Utilities == "AllPub"] <- 4
+train$vnUtilities[train$Utilities == "NoSewr"] <- 3
+train$vnUtilities[train$Utilities == "NoSeWa"] <- 2
+train$vnUtilities[train$Utilities == "ELO"] <- 1
+```
+
+LandSlope indica el pendent del terreny.
+
+```{r vn_LandSlope, echo=FALSE}
+#Comprovem els possibles valors de la variable LandSlope
+table(train$LandSlope)
+
+#La nova variable numèrica prendrà 3 possibles valors: Gtl(3), Mod(2), Sev(1)
+train$vnLandSlope[train$LandSlope == "Gtl"] <- 3
+train$vnLandSlope[train$LandSlope == "Mod"] <- 2
+train$vnLandSlope[train$LandSlope == "Sev"] <- 1
+```
+
+Amb LotConfig per tal de donar un valor numèric que tingui sentit, tenint en compte que no es pot establir cap ordre de millor o pitjor per a la configuració de la propietat, el que farem es fixar-nos en el preu mig per a cada tipus de configuració. D'aquesta manera podrem ordenar de la configuració més cara a la més barata les vivendes.
+
+```{r vn_LotConfig, echo=FALSE}
+#Comprovem quin és el SalePrice mig per a cadascuna de les configuracions
+summarize(group_by(train, LotConfig), mean(SalePrice, na.rm=T))
+
+#Ara assignem 5 possibles valors numèrics a la nova variable, seguint un ordre de configuració més valuosa a menys: CulDSac(5), FR3(4), Corner(3), FR2(2), Inside(1)
+train$vnLotConfig[train$LotConfig == "CulDSac"] <- 5
+train$vnLotConfig[train$LotConfig == "FR3"] <- 4
+train$vnLotConfig[train$LotConfig == "Corner"] <- 3
+train$vnLotConfig[train$LotConfig == "FR2"] <- 2
+train$vnLotConfig[train$LotConfig == "Inside"] <- 1
+```
+
+Per assignar un valor numèric a l'atribut Neighborhood farem el mateix. Definirem el preu mig de venta de les vivendes de cada veïnat, i a continuació classificarem aquests barris en 3 grups en funció del preu mig de les vivendes entre barats(1), preu mitjà(2) i cars(3).
+
+```{r vn_neighborhood, echo=FALSE}
+#Comprovem quin és el preu de venta mig per a les vivendes de cadascun dels barris
+nbhdprice <- summarize(group_by(train, Neighborhood),mean(SalePrice, na.rm=T))
+
+#Definim com a barri barat (nbhdprice_lo) els barris amb un preu mitjà inferior a 140.000, barri mitjà (nbhdprice_med) els que tenen un preu entre 140.000 i 200.000 i barri car (nbhdprice_hi) els que les propietats tenen un preu superior a 200.000
+nbhdprice_lo <- filter(nbhdprice, nbhdprice$`mean(SalePrice, na.rm = T)` < 140000)
+nbhdprice_med <- filter(nbhdprice, nbhdprice$`mean(SalePrice, na.rm = T)` < 200000 & nbhdprice$`mean(SalePrice, na.rm = T)` >= 140000 )
+nbhdprice_hi <- filter(nbhdprice, nbhdprice$`mean(SalePrice, na.rm = T)` >= 200000)
+
+#Finalment assignem 3 possibles valors depenent del tipus de veinat: nbhdprice_hi(3), nbhdprice_med(2), nbhdprice_lo(1)
+train$vnNeighborhood[train$Neighborhood %in% nbhdprice_lo$Neighborhood] <- 1
+train$vnNeighborhood[train$Neighborhood %in% nbhdprice_med$Neighborhood] <- 2
+train$vnNeighborhood[train$Neighborhood %in% nbhdprice_hi$Neighborhood] <- 3
+```
+
+Els atributs Condition1 i Condition2 els convertirem a valors numèrics d'igual forma. I farem servir el mateix mètode que en els anteriors casos, comprovant el preu de venta mig per a cadascuna de les categories i establint un ordre per a que els valors numèrics tinguin sentit.
+
+```{r vn_conditions, echo=FALSE}
+#Comprovem SalePrice per cada opció
+summarize(group_by(train, Condition1),mean(SalePrice, na.rm=T))
+summarize(group_by(train, Condition2),mean(SalePrice, na.rm=T))
+
+#A partir del resultat anterior veiem que PosA i PosN tenen un preu més elevat i es diferencien de la resta tant en Condition1 com en Condition2. Definim dos valors numèrics 1 i 0, en funció de si l'atribut té valor PosA o PosN o no.
+train$vnCondition1[train$Condition1 %in% c("PosA", "PosN")] <- 1
+train$vnCondition1[!train$Condition1 %in% c("PosA", "PosN")] <- 0
+
+train$vnCondition2[train$Condition2 %in% c("PosA", "PosN")] <- 1
+train$vnCondition2[!train$Condition2 %in% c("PosA", "PosN")] <- 0
+```
+
+BldgType indica el tipus de construcció
+
+```{r vn_BldgType, echo=FALSE}
+#Comprovem quin és el SalePrice mig per a cada BldgType
+summarize(group_by(train, BldgType), mean(SalePrice, na.rm=T))
+
+#Ara assignem valors numèrics a la nova variable, seguint un ordre de tipus d'edificació de més valuosa a menys: 1Fam(5), TwnhsE(4), Twnhs(3), Duplex(2), 2fmCon(1)
+train$vnBldgType[train$BldgType == "1Fam"] <- 5
+train$vnBldgType[train$BldgType == "TwnhsE"] <- 4
+train$vnBldgType[train$BldgType == "Twnhsr"] <- 3
+train$vnBldgType[train$BldgType == "Duplex"] <- 2
+train$vnBldgType[train$BldgType == "2fmCon"] <- 1
+```
+
+HouseStyle descriu el tipus de vivenda
+
+```{r vn_HouseStyle, echo=FALSE}
+#Comprovem quin és el SalePrice mig per a cada HouseStyle
+housestyle_price <- summarize(group_by(train, HouseStyle), mean(SalePrice, na.rm=T))
+
+#Definim 3 categories en funció si el preu és inferior a 140.000 (housestyle_lo), es troba entre 140.000 i 200.000 (housestyle_med), o és superior a 200.000 (housestyle_hi)
+housestyle_lo <- filter(housestyle_price, housestyle_price$`mean(SalePrice, na.rm = T)` < 140000)
+housestyle_med <- filter(housestyle_price, housestyle_price$`mean(SalePrice, na.rm = T)` < 200000 & housestyle_price$`mean(SalePrice, na.rm = T)` >= 140000 )
+housestyle_hi <- filter(housestyle_price, housestyle_price$`mean(SalePrice, na.rm = T)` >= 200000)
+
+#Finalment assignem 3 possibles valors depenent del tipus d'habitatge: housestyle_hi(3), housestyle_med(2), housestyle_lo(1)
+train$vnHouseStyle[train$HouseStyle %in% housestyle_lo$HouseStyle] <- 1
+train$vnHouseStyle[train$HouseStyle %in% housestyle_med$HouseStyle] <- 2
+train$vnHouseStyle[train$HouseStyle %in% housestyle_hi$HouseStyle] <- 3
+```
+
+RoofStyle descriu el tipus de teulada.
+
+```{r vn_RoofStyle, echo=FALSE}
+#Comprovem quin és el SalePrice mig per a cada RoofStyle
+summarize(group_by(train, RoofStyle), mean(SalePrice, na.rm=T))
+
+#Ara assignem valors numèrics a la nova variable, seguint un ordre de tipus de teulada de més valuosa a menys: Shed(6), Hip(5), Flat(4), Mansard(3), Gable(2), Gambrel(1)
+train$vnRoofStyle[train$RoofStyle == "Shed"] <- 6
+train$vnRoofStyle[train$RoofStyle == "Hip"] <- 5
+train$vnRoofStyle[train$RoofStyle == "Flat"] <- 4
+train$vnRoofStyle[train$RoofStyle == "Mansard"] <- 3
+train$vnRoofStyle[train$RoofStyle == "Gable"] <- 2
+train$vnRoofStyle[train$RoofStyle == "Gambrel"] <- 1
+```
+
+RoofMatl descriu el material amb que està feta la teulada.
+
+```{r vn_RoofMatl, echo=FALSE}
+#Comprovem quina és la mitja del SalePrice per cada RoofMatl
+summarize(group_by(train, RoofMatl), mean(SalePrice, na.rm=T))
+
+#Assignem valor 1 o 0 a cada material en funció de si la mitja del preu de venta de les vivendes amb teulades construides amb aquell material és superior a 200.000 (1) o inferior (0).
+train$vnRoofMatl[train$RoofMatl %in% c("Membran", "WdShake", "WdShngl")] <- 1
+train$vnRoofMatl[!train$RoofMatl %in% c("Membran", "WdShake", "WdShngl")] <- 0
+```
+
+Exterior1st i Exterior2nd descriuen el tipus d'acabats del recobriment exterior de les parets de la vivenda.
+
+```{r vn_Exteriors, echo=FALSE}
+#Comprovem quina és la mitja del SalePrice per a cada tipus d'Exterior1st
+ext1_price <- summarize(group_by(train, Exterior1st), mean(SalePrice, na.rm=T))
+
+#Definim 3 categories en funció si el preu és inferior a 140.000 (ext1_lo), es troba entre 140.000 i 200.000 (ext1_med), o és superior a 200.000 (ext1_hi)
+ext1_lo <- filter(ext1_price, ext1_price$`mean(SalePrice, na.rm = T)` < 140000)
+ext1_med <- filter(ext1_price, ext1_price$`mean(SalePrice, na.rm = T)` < 200000 & ext1_price$`mean(SalePrice, na.rm = T)` >= 140000 )
+ext1_hi <- filter(ext1_price, ext1_price$`mean(SalePrice, na.rm = T)` >= 200000)
+
+#Finalment assignem 3 possibles valors depenent del tipus d'exterior: ext1_hi(3), ext1_med(2), ext1_lo(1)
+train$vnExterior1st[train$Exterior1st %in% ext1_lo$Exterior1st] <- 1
+train$vnExterior1st[train$Exterior1st %in% ext1_med$Exterior1st] <- 2
+train$vnExterior1st[train$Exterior1st %in% ext1_hi$Exterior1st] <- 3
+
+#Comprovem quina és la mitja del SalePrice per a cada tipus d'Exterior2nd
+ext2_price <- summarize(group_by(train, Exterior2nd), mean(SalePrice, na.rm=T))
+
+#Definim 3 categories en funció si el preu és inferior a 140.000 (ext2_lo), es troba entre 140.000 i 200.000 (ext2_med), o és superior a 200.000 (ext2_hi)
+ext2_lo <- filter(ext2_price, ext2_price$`mean(SalePrice, na.rm = T)` < 140000)
+ext2_med <- filter(ext2_price, ext2_price$`mean(SalePrice, na.rm = T)` < 200000 & ext2_price$`mean(SalePrice, na.rm = T)` >= 140000 )
+ext2_hi <- filter(ext2_price, ext2_price$`mean(SalePrice, na.rm = T)` >= 200000)
+
+#Finalment assignem 3 possibles valors depenent del tipus d'exterior: ext1_hi(3), ext1_med(2), ext1_lo(1)
+train$vnExterior2nd[train$Exterior2nd %in% ext2_lo$Exterior2nd] <- 1
+train$vnExterior2nd[train$Exterior2nd %in% ext2_med$Exterior2nd] <- 2
+train$vnExterior2nd[train$Exterior2nd %in% ext2_hi$Exterior2nd] <- 3
+```
+
+MasVnrType indica el tipus de mamposteria.
+
+```{r vn_MasVnrType, echo=FALSE}
+#Comprovem quina és la mitja del SalePrice per cada MasVnrType
+summarize(group_by(train, MasVnrType),mean(SalePrice, na.rm=T))
+```
+
+Observem que hi han valors NA.
+
+```{r vn_MasVnrType2, echo=FALSE}
+#Assignem valor 1 o 0 a cada material en funció de si la mitja del preu de venta de les vivendes amb mamposteria feta amb aquell material és superior a 200.000 (1) o inferior (0). 
+train$vnMasVnrType[train$MasVnrType %in% c("Stone", "BrkFace") | is.na(train$MasVnrType)] <- 1
+train$vnMasVnrType[!train$MasVnrType %in% c("Stone", "BrkFace") & !is.na(train$MasVnrType)] <- 0
+```
+
+ExterQual, ens diu la qualitat dels materials emprats en els exteriors.
+
+```{r vn_ExterQual, echo=FALSE}
+#Assignem valors numèrics de més qualitat a menys: Excellent (5), Good (4), Average/Typical (3), Fair(2), Poor (1)
+train$vnExterQual[train$ExterQual == "Ex"] <- 5
+train$vnExterQual[train$ExterQual == "Gd"] <- 4
+train$vnExterQual[train$ExterQual == "TA"] <- 3
+train$vnExterQual[train$ExterQual == "Fa"] <- 2
+train$vnExterQual[train$ExterQual == "Po"] <- 1
+```
+
+ExterCond indica l'estat actual dels materials emprats en els exteriors.
+
+```{r vn_ExterCond, echo=FALSE}
+#Assignem valors numèrics de més qualitat a menys: Excellent (5), Good (4), Average/Typical (3), Fair(2), Poor (1)
+train$vnExterCond[train$ExterCond == "Ex"] <- 5
+train$vnExterCond[train$ExterCond == "Gd"] <- 4
+train$vnExterCond[train$ExterCond == "TA"] <- 3
+train$vnExterCond[train$ExterCond == "Fa"] <- 2
+train$vnExterCond[train$ExterCond == "Po"] <- 1
+```
+
+Foundation indica el tipus de fonaments de la vivenda.
+
+```{r vn_Foundation, echo=FALSE}
+#Comprovem quin és el SalePrice mig per a cada tipus de fonaments.
+summarize(group_by(train, Foundation), mean(SalePrice, na.rm=T))
+
+#Ara assignem valors numèrics a la nova variable, seguint un ordre dels fonaments més valorats als que menys: PConc(6), Wood(5), Stone(4), CBlock(3), BrkTil(2), Slab(1)
+train$vnFoundation[train$Foundation == "PConc"] <- 6
+train$vnFoundation[train$Foundation == "Wood"] <- 5
+train$vnFoundation[train$Foundation == "Stone"] <- 4
+train$vnFoundation[train$Foundation == "CBlock"] <- 3
+train$vnFoundation[train$Foundation == "BrkTil"] <- 2
+train$vnFoundation[train$Foundation == "Slab"] <- 1
+```
+
+BsmtQual, indica la qualitat del soterrani en funció de la seva alçada.
+
+```{r vn_BsmtQual, echo=FALSE}
+#Assignem valors numèrics de més qualitat a menys: Excellent (6), Good (5), Typical (4), Fair (3), Poor (2), No Basement (1)
+train$vnBsmtQual[train$BsmtQual == "Ex"] <- 6
+train$vnBsmtQual[train$BsmtQual == "Gd"] <- 5
+train$vnBsmtQual[train$BsmtQual == "TA"] <- 4
+train$vnBsmtQual[train$BsmtQual == "Fa"] <- 3
+train$vnBsmtQual[train$BsmtQual == "Po"] <- 2
+train$vnBsmtQual[is.na(train$BsmtQual)] <- 1
+```
+
+BsmtCond, fa una evaluació general de les condicions actuals del soterrani.
+
+```{r vn_BsmtCond, echo=FALSE}
+#Assignem valors numèrics de més qualitat a menys: Excellent (6), Good (5), Typical (4), Fair (3), Poor (2), No Basement (1)
+train$vnBsmtCond[train$BsmtCond == "Ex"] <- 6
+train$vnBsmtCond[train$BsmtCond == "Gd"] <- 5
+train$vnBsmtCond[train$BsmtCond == "TA"] <- 4
+train$vnBsmtCond[train$BsmtCond == "Fa"] <- 3
+train$vnBsmtCond[train$BsmtCond == "Po"] <- 2
+train$vnBsmtCond[is.na(train$BsmtCond)] <- 1
+```
+
+BsmtExposure fa referència a la visibilitat del soterrani.
+
+```{r vn_BsmtExposure, echo=FALSE}
+#Assignem valors numèrics de més qualitat a menys: Good Exposure (5), Average Exposure (4), Minimum Exposure (3), No Exposure (2), No Basement (1)
+train$vnBsmtExposure[train$BsmtExposure == "Gd"] <- 5
+train$vnBsmtExposure[train$BsmtExposure == "Av"] <- 4
+train$vnBsmtExposure[train$BsmtExposure == "Mn"] <- 3
+train$vnBsmtExposure[train$BsmtExposure == "No"] <- 2
+train$vnBsmtExposure[is.na(train$BsmtExposure)] <- 1
+```
+
+BsmtFinType1 i BsmtFinType2 fa referència a la qualitat del soterrani i la seva habitabilitat.
+
+```{r vn_BsmtFinType, echo=FALSE}
+#Assignem valors numèrics de més qualitat a menys: Good Living Quarters (7), Average Living Quarters (6), Below Average Living Quarters (5), Average Rec Room (4), Low Quality (3), Unfinished (2), No Basement (1)
+train$vnBsmtFinType1[train$BsmtFinType1 == "GLQ"] <- 7
+train$vnBsmtFinType1[train$BsmtFinType1 == "ALQ"] <- 6
+train$vnBsmtFinType1[train$BsmtFinType1 == "BLQ"] <- 5
+train$vnBsmtFinType1[train$BsmtFinType1 == "Rec"] <- 4
+train$vnBsmtFinType1[train$BsmtFinType1 == "LwQ"] <- 3
+train$vnBsmtFinType1[train$BsmtFinType1 == "Unf"] <- 2
+train$vnBsmtFinType1[is.na(train$BsmtFinType1)] <- 1
+
+train$vnBsmtFinType2[train$BsmtFinType2 == "GLQ"] <- 7
+train$vnBsmtFinType2[train$BsmtFinType2 == "ALQ"] <- 6
+train$vnBsmtFinType2[train$BsmtFinType2 == "BLQ"] <- 5
+train$vnBsmtFinType2[train$BsmtFinType2 == "Rec"] <- 4
+train$vnBsmtFinType2[train$BsmtFinType2 == "LwQ"] <- 3
+train$vnBsmtFinType2[train$BsmtFinType2 == "Unf"] <- 2
+train$vnBsmtFinType2[is.na(train$BsmtFinType2)] <- 1
+```
+
+Heating descriu el tipus de calefacció.
+
+```{r vn_Heating, echo=FALSE}
+#Comprovem quin és el SalePrice mig per a cada tipus de calefacció
+summarize(group_by(train, Heating), mean(SalePrice, na.rm=T))
+
+#Ara assignem valors numèrics a la nova variable, seguint un ordre del tipus de calefacció que dóna més valor a la vivenda al que menys: GasA(6), GasW(5), OthW(4), Wall(3), Grav(2), Floor(1)
+train$vnHeating[train$Heating == "GasA"] <- 6
+train$vnHeating[train$Heating == "GasW"] <- 5
+train$vnHeating[train$Heating == "OthW"] <- 4
+train$vnHeating[train$Heating == "Wall"] <- 3
+train$vnHeating[train$Heating == "Grav"] <- 2
+train$vnHeating[train$Heating == "Floor"] <- 1
+```
+
+HeatingQC ens diu la qualitat i l'estat de la instal·lació de la calefacció.
+
+```{r vn_HeatingQC, echo=FALSE}
+#Assignem valors numèrics de més qualitat a menys: Excellent (5), Good (4), Average/Typical (3), Fair (2), Poor (1)
+train$vnHeatingQC[train$HeatingQC == "Ex"] <- 5
+train$vnHeatingQC[train$HeatingQC == "Gd"] <- 4
+train$vnHeatingQC[train$HeatingQC == "TA"] <- 3
+train$vnHeatingQC[train$HeatingQC == "Fa"] <- 2
+train$vnHeatingQC[train$HeatingQC == "Po"] <- 1
+```
+
+CentralAir indica si l'habitatge té aire acondicionat central.
+
+```{r vn_CentralAir, echo=FALSE}
+#Assignem el valor 1 si té AC i 0 si no en té.
+train$vnCentralAir[train$CentralAir == "Y"] <- 1
+train$vnCentralAir[train$CentralAir == "N"] <- 0
+```
+
+Electrical descriu el tipus d'instal·lació elèctrica de la vivenda.
+
+```{r vn_Electrical, echo=FALSE}
+#Comprovem quin és el SalePrice mig de les vivendes per a cada tipus d'instal·lació
+summarize(group_by(train, Electrical), mean(SalePrice, na.rm=T))
+
+#Ara assignem valors numèrics a la nova variable, seguint un ordre del tipus d'instal·lació que dóna més valor a la vivenda al que menys: SBrkr(6), NA(5), FuseA(4), FuseF(3), FuseP(2), Mix(1)
+train$vnElectrical[train$Electrical == "SBrkr"] <- 6
+train$vnElectrical[is.na(train$Electrical)] <- 5
+train$vnElectrical[train$Electrical == "FuseA"] <- 4
+train$vnElectrical[train$Electrical == "FuseF"] <- 3
+train$vnElectrical[train$Electrical == "FuseP"] <- 2
+train$vnElectrical[train$Electrical == "Mix"] <- 1
+```
+
+KitchenQual, valora la qualitat general de la cuina.
+
+```{r vn_KitchenQual, echo=FALSE}
+#Assignem valors numèrics de més qualitat a menys: Excellent (5), Good (4), Average/Typical (3), Fair (2), Poor (1)
+train$vnKitchenQual[train$KitchenQual == "Ex"] <- 5
+train$vnKitchenQual[train$KitchenQual == "Gd"] <- 4
+train$vnKitchenQual[train$KitchenQual == "TA"] <- 3
+train$vnKitchenQual[train$KitchenQual == "Fa"] <- 2
+train$vnKitchenQual[train$KitchenQual == "Po"] <- 1
+```
+
+FireplaceQu, indica la qualitat del foc a terra.
+
+```{r vn_FireplaceQu, echo=FALSE}
+#Assignem valors numèrics de més qualitat a menys: Excellent (6), Good (5), Average (4), Fair (3), Poor (2), No Fireplace (1)
+train$vnFireplaceQu[train$FireplaceQu == "Ex"] <- 6
+train$vnFireplaceQu[train$FireplaceQu == "Gd"] <- 5
+train$vnFireplaceQu[train$FireplaceQu == "TA"] <- 4
+train$vnFireplaceQu[train$FireplaceQu == "Fa"] <- 3
+train$vnFireplaceQu[train$FireplaceQu == "Po"] <- 2
+train$vnFireplaceQu[is.na(train$FireplaceQu)] <- 1
+```
+
+GarageType, tipus de garatge.
+
+```{r vn_GarageType, echo=FALSE}
+#Comprovem quin és el SalePrice mig de les vivendes segons el tipus de garatge
+summarize(group_by(train, GarageType), mean(SalePrice, na.rm=T))
+
+#Ara assignem valors numèrics a la nova variable, seguint un ordre del tipus de garatge que dóna més valor a la vivenda al que menys: BuiltIn(7), Attached(6), Basement(5), More than one type(4), Detached(3), Car Port(2), No Garage(1)
+train$vnGarageType[train$GarageType == "BuiltIn"] <- 7
+train$vnGarageType[train$GarageType == "Attchd"] <- 6
+train$vnGarageType[train$GarageType == "Basment"] <- 5
+train$vnGarageType[train$GarageType == "2Types"] <- 4
+train$vnGarageType[train$GarageType == "Detchd"] <- 3
+train$vnGarageType[train$GarageType == "CarPort"] <- 2
+train$vnGarageType[is.na(train$GarageType)] <- 1
+```
+
+GarageFinish, ens diu si l'interior del garatge està acabat o no.
+
+```{r vn_GarageFinish, echo=FALSE}
+#Assignem valors numèrics en funció del grau dels acabats del garatge: Finished (4), Rough Finished (3), Unfinished (2), No Garage (1)
+train$vnGarageFinish[train$GarageFinish == "Fin"] <- 4
+train$vnGarageFinish[train$GarageFinish == "RFn"] <- 3
+train$vnGarageFinish[train$GarageFinish == "Unf"] <- 2
+train$vnGarageFinish[is.na(train$GarageFinish)] <- 1
+```
+
+GarageQual, indica la qualitat general del garatge.
+
+```{r vn_GarageQual, echo=FALSE}
+#Assignem valors numèrics de més qualitat a menys: Excellent (6), Good (5), Average (4), Fair (3), Poor (2), No Garage (1)
+train$vnGarageQual[train$GarageQual == "Ex"] <- 6
+train$vnGarageQual[train$GarageQual == "Gd"] <- 5
+train$vnGarageQual[train$GarageQual == "TA"] <- 4
+train$vnGarageQual[train$GarageQual == "Fa"] <- 3
+train$vnGarageQual[train$GarageQual == "Po"] <- 2
+train$vnGarageQual[is.na(train$GarageQual)] <- 1
+```
+
+GarageCond, indica l'estat actual del garatge.
+
+```{r vn_GarageCond, echo=FALSE}
+#Assignem valors numèrics de més qualitat a menys: Excellent (6), Good (5), Average (4), Fair (3), Poor (2), No Garage (1)
+train$vnGarageCond[train$GarageCond == "Ex"] <- 6
+train$vnGarageCond[train$GarageCond == "Gd"] <- 5
+train$vnGarageCond[train$GarageCond == "TA"] <- 4
+train$vnGarageCond[train$GarageCond == "Fa"] <- 3
+train$vnGarageCond[train$GarageCond == "Po"] <- 2
+train$vnGarageCond[is.na(train$GarageCond)] <- 1
+```
+
+PavedDrive indica si la calçada està asfaltada.
+
+```{r vn_PavedDrive, echo=FALSE}
+#Hi han 3 possibles valors: Paved (3), Partial Pavement (2), Dirt/Gravel (1)
+train$vnPavedDrive[train$PavedDrive == "Y"] <- 3
+train$vnPavedDrive[train$PavedDrive == "P"] <- 2
+train$vnPavedDrive[train$PavedDrive == "N"] <- 1
+```
+
+Functional, indica la funcionalitat de l'habitatge (assumeix la opció Typical si no hi ha cap deducció garantida).
+
+```{r vn_Functional, echo=FALSE}
+train$vnFunctional[train$Functional == "Typ"] <- 1
+train$vnFunctional[train$Functional != "Typ"] <- 0
+```
+
+SaleType fa referència al tipus de venta.
+
+```{r vn_SaleType, echo=FALSE}
+#Comprovem quin és el preu mitjà de venta per a les vivendes en funció del tipus de venta
+summarize(group_by(train, SaleType), mean(SalePrice, na.rm=T))
+
+#Ara assignem valors numèrics i agrupem les variables que observem que tenen preus mitjans de venta semblants.
+test$vnSaleType[test$SaleType %in% c("New", "Con")] <- 5
+test$vnSaleType[test$SaleType %in% c("CWD", "ConLI")] <- 4
+test$vnSaleType[test$SaleType %in% c("WD")] <- 3
+test$vnSaleType[test$SaleType %in% c("COD", "ConLw", "ConLD")] <- 2
+test$vnSaleType[test$SaleType %in% c("Oth")] <- 1
+```
+
+SaleCondition descriu les condicions en que s'ha realitzat la venta.
+
+```{r vn_SaleCondition, echo=FALSE}
+#Comprovem quin és el preu mitjà de venta per a les vivendes en funció de la condició de venta
+summarize(group_by(train, SaleCondition), mean(SalePrice, na.rm=T))
+
+#Ara assignem valors numèrics a les variables
+train$vnSaleCondition[train$SaleCondition == "Partial"] <- 6
+train$vnSaleCondition[train$SaleCondition == "Normal"] <- 5
+train$vnSaleCondition[train$SaleCondition == "Alloca"] <- 4
+train$vnSaleCondition[train$SaleCondition == "Family"] <- 3
+train$vnSaleCondition[train$SaleCondition == "Abnorml"] <- 2
+train$vnSaleCondition[train$SaleCondition == "Adjland"] <- 1
+```
+
+MSZoning identifica el tipus de zona on es realitza la venta.
+
+```{r vn_MSZoning, echo=FALSE}
+#Comprovem quin és el preu mitjà de venta per a les vivendes en funció de la zona de venta
+summarize(group_by(train, MSZoning), mean(SalePrice, na.rm=T))
+
+#Ara assignem valors numèrics a les variables
+test$vnMSZoning[test$MSZoning %in% c("FV")] <- 5
+test$vnMSZoning[test$MSZoning %in% c("RL")] <- 4
+test$vnMSZoning[test$MSZoning %in% c("RH")] <- 3
+test$vnMSZoning[test$MSZoning %in% c("RM")] <- 2
+test$vnMSZoning[test$MSZoning %in% c("C (all)")] <- 1
+```
+
+MSSubClass identifica el tipus de vivenda venuda.
+
+```{r vn_MSSubClass, echo=FALSE}
+#Comprovem quin és el preu de venta mig per a les vivendes de cada tipus
+subclassprice <- summarize(group_by(train, MSSubClass),mean(SalePrice, na.rm=T))
+
+#Definim com a tipus de vivenda barata (subclass_lo) les propietats amb un preu mitjà inferior a 140.000, vivenda assequible (subclass_med) les que tenen un preu entre 140.000 i 200.000 i propietat cara (subclass_hi) els tipus de propietats que tenen un preu superior a 200.000
+subclass_lo <- filter(subclassprice, subclassprice$`mean(SalePrice, na.rm = T)` < 140000)
+subclass_med <- filter(subclassprice, subclassprice$`mean(SalePrice, na.rm = T)` < 200000 & subclassprice$`mean(SalePrice, na.rm = T)` >= 140000 )
+subclass_hi <- filter(subclassprice, subclassprice$`mean(SalePrice, na.rm = T)` >= 200000)
+
+#Finalment assignem 3 possibles valors: subclass_hi(3), subclass_med(2), subclass_lo(1)
+train$vnMSSubClass[train$MSSubClass %in% subclass_lo$MSSubClass] <- 1
+train$vnMSSubClass[train$MSSubClass %in% subclass_med$MSSubClass] <- 2
+train$vnMSSubClass[train$MSSubClass %in% subclass_hi$MSSubClass] <- 3
 ```
 
 PREGUNTES
