@@ -17,7 +17,6 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r Libraries, message=FALSE, warning=FALSE, echo=FALSE}
-
 library(readr)
 library(dplyr)
 library(tidyverse)
@@ -36,13 +35,11 @@ library(viridis)
 library(discretization)
 library(fpc)
 library(nortest)
-
+library(DescTools)
 #if(!require(nortest)){
  #   install.packages('nortest', repos='http://cran.us.r-project.org')
  #   library(nortest)
 #}
-
-
 ##library(devtools)
 ```
 
@@ -57,9 +54,7 @@ test <- read_csv("HousePrices/test.csv")
 ========================
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
-
 names(train)
-
 ```
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
@@ -67,9 +62,7 @@ summary(train)
 ```
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
-
 str(train)
-
 ```
 
 
@@ -590,7 +583,7 @@ sapply(train, function(x) sum(is.na(x)))
 
 Dels atributs numèrics seleccionats, s'observa que no hi ha valors na, tot i que poden haver-hi 0, per exemple en els anys. En la variable SalePrice tampoc hi ha NA.
 
-En els atributs categòrics sí s'observen valors per NA, en aquest cas, no fence/none, i s'observa que en tots els casos formarien part del domini dels atributs. e.g. significant cap.
+En els atributs categòrics sí s'aprecien valors NA, en el cas de Fence, els NA equivaldrien a no fence, i s'observa que en tots els casos formarien part del domini dels atributs. e.g. significant cap.
 
 Fence: Fence quality
 		
@@ -631,7 +624,7 @@ Donat que es té una gran quantitat d'atributs: 81 atributs es fa una reducció 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 train = subset(train, select = -c(Alley,PoolQC,Fence,MiscFeature) )
 ```
-2- Abans de fer matrius de correlació per a identificar i prescidir d'atributs amb una alta correlació entre ells (colinealitat) o amb molt poca correlació amb la variable Sale Price, es fa una prova de normalitat i homoscedasticitat.
+2- Abans de fer matrius de correlació per a identificar i prescidir d'atributs amb una alta correlació entre ells (colinealitat) o amb molt poca correlació amb la variable Sale Price, es fa una prova de normalitat.
 
 2-1-Normalitat de Sale Price que és la variable dependent.
 
@@ -701,18 +694,15 @@ En aquest cas com els atributs numèrics no segueixen una distribució normal, s
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 train.scaled <- scale(train[,c('OverallQual','OverallCond','YearBuilt','YearRemodAdd','MasVnrArea','BsmtFinSF1','BsmtFinSF2','BsmtUnfSF','TotalBsmtSF','1stFlrSF','2ndFlrSF','LowQualFinSF','GrLivArea','BsmtFullBath','BsmtHalfBath','FullBath','HalfBath','BedroomAbvGr','KitchenAbvGr','TotRmsAbvGrd','Fireplaces','GarageYrBlt','GarageCars','GarageArea','WoodDeckSF','OpenPorchSF','EnclosedPorch','3SsnPorch','ScreenPorch','PoolArea','MiscVal','MoSold','YrSold','SalePrice')])
-
 #es converteix a data frame
 train.scaled <- as.data.frame(scale(train.scaled))
-
 ```
 
-
+Spearman:
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 corr_matrix <- matrix(nc = 2, nr = 0) 
 colnames(corr_matrix) <- c("estimate", "p-value")
-
 for (i in 1:(ncol(train.scaled) - 1)) { 
  if (is.integer(train.scaled[,i]) | is.numeric(train.scaled[,i])) { 
    spearman_test = cor.test(train.scaled[,i],
@@ -728,7 +718,6 @@ for (i in 1:(ncol(train.scaled) - 1)) {
   }
 }
 print(corr_matrix)
-
 ```
 
 
@@ -775,17 +764,14 @@ summary(train$SalePrice)
 ```
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
-
 boxplot.stats(train$SalePrice)$out
 ```
 
-Observem com la majoria d'outliers són preus alts comparats amb la mitja que és de 163000. Es donen per valors vàlids, donat que s'observen característiques d'alt standing, el que fa suposar que els valors són vàlids
+Observem com la majoria d'outliers són preus alts comparats amb la mitja que és de 163000. Es donen per valors vàlids, donat que s'observen característiques d'alt standing en aquestes cases, el que fa suposar que els valors són vàlids
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 train.data = train[c("OverallQual","GrLivArea","YearBuilt","GarageCars","GarageArea","SalePrice")]
-
 filter(train.data,SalePrice %in% (boxplot.stats(train$SalePrice)$out))
-
 ```
 
 
@@ -817,9 +803,7 @@ boxplot.stats(train$`1stFlrSF`)$out
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 boxplot.stats(train$`2ndFlrSF`)$out
 ```
-```{r echo=TRUE, message=FALSE, warning=FALSE}
-boxplot.stats(train$LowQualFinSF)$out
-```
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 boxplot.stats(train$GrLivArea)$out
 ```
@@ -862,7 +846,7 @@ boxplot.stats(train$OpenPorchSF)$out
 boxplot.stats(train$EnclosedPorch)$out
 ```
 
-Enclosed porch area in square feet outliers: La mitja són 21.95 i el màxim 552 no havent-hi ni primer ni tercer quartil. Sembla un atribut molt volàtil.
+Enclosed porch area in square feet outliers: La mitja són 21.95 i el màxim 552 no havent-hi ni primer ni tercer quartil. Per tant podem dir que en la majoria de casos no hi ha enclosed porch, però quan hi ha és de molts metres quadrats.
 
 
 TRACTAMENT d'OUTLIERS:
@@ -883,7 +867,6 @@ Començarem per la variable Street, que té dos possibles valors: Grvl o Pave; �
 ```{r vn_Street, echo=FALSE}
 #Comprovem els possibles valors de la variable Street
 table(train$Street)
-
 #Creem la nova variable numèrica assignant 1 o 0 en funció de si el carrer està pavimentat (1) o no (0)
 train$vnStreet[train$Street == "Pave"] <- 1
 train$vnStreet[train$Street != "Pave"] <- 0
@@ -894,7 +877,6 @@ L'atribut LotShape ens descriu la forma de la vivenda en 4 nivells desde regular
 ```{r vn_LotShape, echo=FALSE}
 #Comprovem els possibles valors de la variable LotShape
 table(train$LotShape)
-
 #Creem la nova variable numèrica que pot agafar 4 possibles valors: regular(4), una mica irregular (3), bastant irregular (2), irregular (1)
 train$vnLotShape[train$LotShape == "Reg"] <- 4
 train$vnLotShape[train$LotShape == "IR1"] <- 3
@@ -907,7 +889,6 @@ LandContour indica el desnivell de la vivenda.
 ```{r vn_LandContour, echo=FALSE}
 #Comprovem els possibles valors de la variable LandContour
 table(train$LandContour)
-
 #Creem la nova variable numèrica en la que considerarem únicament dos possibles valors: a nivell (1) o amb desnivell (0)
 train$vnLandContour[train$LandContour == "Lvl"] <- 1
 train$vnLandContour[train$LandContour != "Lvl"] <- 0
@@ -918,7 +899,6 @@ Utilities descriu els serveis de que consta la vivenda.
 ```{r vn_Utilities, echo=FALSE}
 #Comprovem els possibles valors de la variable Utilities
 table(train$Utilities)
-
 #La nova variable numèrica prendrà 4 possibles valors: AllPub(4), NoSewr(3), NoSeWa(2), ELO(1)
 train$vnUtilities[train$Utilities == "AllPub"] <- 4
 train$vnUtilities[train$Utilities == "NoSewr"] <- 3
@@ -931,7 +911,6 @@ LandSlope indica el pendent del terreny.
 ```{r vn_LandSlope, echo=FALSE}
 #Comprovem els possibles valors de la variable LandSlope
 table(train$LandSlope)
-
 #La nova variable numèrica prendrà 3 possibles valors: Gtl(3), Mod(2), Sev(1)
 train$vnLandSlope[train$LandSlope == "Gtl"] <- 3
 train$vnLandSlope[train$LandSlope == "Mod"] <- 2
@@ -943,7 +922,6 @@ Amb LotConfig per tal de donar un valor numèric que tingui sentit, tenint en co
 ```{r vn_LotConfig, echo=FALSE}
 #Comprovem quin és el SalePrice mig per a cadascuna de les configuracions
 summarize(group_by(train, LotConfig), mean(SalePrice, na.rm=T))
-
 #Ara assignem 5 possibles valors numèrics a la nova variable, seguint un ordre de configuració més valuosa a menys: CulDSac(5), FR3(4), Corner(3), FR2(2), Inside(1)
 train$vnLotConfig[train$LotConfig == "CulDSac"] <- 5
 train$vnLotConfig[train$LotConfig == "FR3"] <- 4
@@ -957,12 +935,10 @@ Per assignar un valor numèric a l'atribut Neighborhood farem el mateix. Definir
 ```{r vn_neighborhood, echo=FALSE}
 #Comprovem quin és el preu de venta mig per a les vivendes de cadascun dels barris
 nbhdprice <- summarize(group_by(train, Neighborhood),mean(SalePrice, na.rm=T))
-
 #Definim com a barri barat (nbhdprice_lo) els barris amb un preu mitjà inferior a 140.000, barri mitjà (nbhdprice_med) els que tenen un preu entre 140.000 i 200.000 i barri car (nbhdprice_hi) els que les propietats tenen un preu superior a 200.000
 nbhdprice_lo <- filter(nbhdprice, nbhdprice$`mean(SalePrice, na.rm = T)` < 140000)
 nbhdprice_med <- filter(nbhdprice, nbhdprice$`mean(SalePrice, na.rm = T)` < 200000 & nbhdprice$`mean(SalePrice, na.rm = T)` >= 140000 )
 nbhdprice_hi <- filter(nbhdprice, nbhdprice$`mean(SalePrice, na.rm = T)` >= 200000)
-
 #Finalment assignem 3 possibles valors depenent del tipus de veinat: nbhdprice_hi(3), nbhdprice_med(2), nbhdprice_lo(1)
 train$vnNeighborhood[train$Neighborhood %in% nbhdprice_lo$Neighborhood] <- 1
 train$vnNeighborhood[train$Neighborhood %in% nbhdprice_med$Neighborhood] <- 2
@@ -975,11 +951,9 @@ Els atributs Condition1 i Condition2 els convertirem a valors numèrics d'igual 
 #Comprovem SalePrice per cada opció
 summarize(group_by(train, Condition1),mean(SalePrice, na.rm=T))
 summarize(group_by(train, Condition2),mean(SalePrice, na.rm=T))
-
 #A partir del resultat anterior veiem que PosA i PosN tenen un preu més elevat i es diferencien de la resta tant en Condition1 com en Condition2. Definim dos valors numèrics 1 i 0, en funció de si l'atribut té valor PosA o PosN o no.
 train$vnCondition1[train$Condition1 %in% c("PosA", "PosN")] <- 1
 train$vnCondition1[!train$Condition1 %in% c("PosA", "PosN")] <- 0
-
 train$vnCondition2[train$Condition2 %in% c("PosA", "PosN")] <- 1
 train$vnCondition2[!train$Condition2 %in% c("PosA", "PosN")] <- 0
 ```
@@ -989,7 +963,6 @@ BldgType indica el tipus de construcció
 ```{r vn_BldgType, echo=FALSE}
 #Comprovem quin és el SalePrice mig per a cada BldgType
 summarize(group_by(train, BldgType), mean(SalePrice, na.rm=T))
-
 #Ara assignem valors numèrics a la nova variable, seguint un ordre de tipus d'edificació de més valuosa a menys: 1Fam(5), TwnhsE(4), Twnhs(3), Duplex(2), 2fmCon(1)
 train$vnBldgType[train$BldgType == "1Fam"] <- 5
 train$vnBldgType[train$BldgType == "TwnhsE"] <- 4
@@ -1003,12 +976,10 @@ HouseStyle descriu el tipus de vivenda
 ```{r vn_HouseStyle, echo=FALSE}
 #Comprovem quin és el SalePrice mig per a cada HouseStyle
 housestyle_price <- summarize(group_by(train, HouseStyle), mean(SalePrice, na.rm=T))
-
 #Definim 3 categories en funció si el preu és inferior a 140.000 (housestyle_lo), es troba entre 140.000 i 200.000 (housestyle_med), o és superior a 200.000 (housestyle_hi)
 housestyle_lo <- filter(housestyle_price, housestyle_price$`mean(SalePrice, na.rm = T)` < 140000)
 housestyle_med <- filter(housestyle_price, housestyle_price$`mean(SalePrice, na.rm = T)` < 200000 & housestyle_price$`mean(SalePrice, na.rm = T)` >= 140000 )
 housestyle_hi <- filter(housestyle_price, housestyle_price$`mean(SalePrice, na.rm = T)` >= 200000)
-
 #Finalment assignem 3 possibles valors depenent del tipus d'habitatge: housestyle_hi(3), housestyle_med(2), housestyle_lo(1)
 train$vnHouseStyle[train$HouseStyle %in% housestyle_lo$HouseStyle] <- 1
 train$vnHouseStyle[train$HouseStyle %in% housestyle_med$HouseStyle] <- 2
@@ -1020,7 +991,6 @@ RoofStyle descriu el tipus de teulada.
 ```{r vn_RoofStyle, echo=FALSE}
 #Comprovem quin és el SalePrice mig per a cada RoofStyle
 summarize(group_by(train, RoofStyle), mean(SalePrice, na.rm=T))
-
 #Ara assignem valors numèrics a la nova variable, seguint un ordre de tipus de teulada de més valuosa a menys: Shed(6), Hip(5), Flat(4), Mansard(3), Gable(2), Gambrel(1)
 train$vnRoofStyle[train$RoofStyle == "Shed"] <- 6
 train$vnRoofStyle[train$RoofStyle == "Hip"] <- 5
@@ -1035,7 +1005,6 @@ RoofMatl descriu el material amb que està feta la teulada.
 ```{r vn_RoofMatl, echo=FALSE}
 #Comprovem quina és la mitja del SalePrice per cada RoofMatl
 summarize(group_by(train, RoofMatl), mean(SalePrice, na.rm=T))
-
 #Assignem valor 1 o 0 a cada material en funció de si la mitja del preu de venta de les vivendes amb teulades construides amb aquell material és superior a 200.000 (1) o inferior (0).
 train$vnRoofMatl[train$RoofMatl %in% c("Membran", "WdShake", "WdShngl")] <- 1
 train$vnRoofMatl[!train$RoofMatl %in% c("Membran", "WdShake", "WdShngl")] <- 0
@@ -1046,25 +1015,20 @@ Exterior1st i Exterior2nd descriuen el tipus d'acabats del recobriment exterior 
 ```{r vn_Exteriors, echo=FALSE}
 #Comprovem quina és la mitja del SalePrice per a cada tipus d'Exterior1st
 ext1_price <- summarize(group_by(train, Exterior1st), mean(SalePrice, na.rm=T))
-
 #Definim 3 categories en funció si el preu és inferior a 140.000 (ext1_lo), es troba entre 140.000 i 200.000 (ext1_med), o és superior a 200.000 (ext1_hi)
 ext1_lo <- filter(ext1_price, ext1_price$`mean(SalePrice, na.rm = T)` < 140000)
 ext1_med <- filter(ext1_price, ext1_price$`mean(SalePrice, na.rm = T)` < 200000 & ext1_price$`mean(SalePrice, na.rm = T)` >= 140000 )
 ext1_hi <- filter(ext1_price, ext1_price$`mean(SalePrice, na.rm = T)` >= 200000)
-
 #Finalment assignem 3 possibles valors depenent del tipus d'exterior: ext1_hi(3), ext1_med(2), ext1_lo(1)
 train$vnExterior1st[train$Exterior1st %in% ext1_lo$Exterior1st] <- 1
 train$vnExterior1st[train$Exterior1st %in% ext1_med$Exterior1st] <- 2
 train$vnExterior1st[train$Exterior1st %in% ext1_hi$Exterior1st] <- 3
-
 #Comprovem quina és la mitja del SalePrice per a cada tipus d'Exterior2nd
 ext2_price <- summarize(group_by(train, Exterior2nd), mean(SalePrice, na.rm=T))
-
 #Definim 3 categories en funció si el preu és inferior a 140.000 (ext2_lo), es troba entre 140.000 i 200.000 (ext2_med), o és superior a 200.000 (ext2_hi)
 ext2_lo <- filter(ext2_price, ext2_price$`mean(SalePrice, na.rm = T)` < 140000)
 ext2_med <- filter(ext2_price, ext2_price$`mean(SalePrice, na.rm = T)` < 200000 & ext2_price$`mean(SalePrice, na.rm = T)` >= 140000 )
 ext2_hi <- filter(ext2_price, ext2_price$`mean(SalePrice, na.rm = T)` >= 200000)
-
 #Finalment assignem 3 possibles valors depenent del tipus d'exterior: ext1_hi(3), ext1_med(2), ext1_lo(1)
 train$vnExterior2nd[train$Exterior2nd %in% ext2_lo$Exterior2nd] <- 1
 train$vnExterior2nd[train$Exterior2nd %in% ext2_med$Exterior2nd] <- 2
@@ -1113,7 +1077,6 @@ Foundation indica el tipus de fonaments de la vivenda.
 ```{r vn_Foundation, echo=FALSE}
 #Comprovem quin és el SalePrice mig per a cada tipus de fonaments.
 summarize(group_by(train, Foundation), mean(SalePrice, na.rm=T))
-
 #Ara assignem valors numèrics a la nova variable, seguint un ordre dels fonaments més valorats als que menys: PConc(6), Wood(5), Stone(4), CBlock(3), BrkTil(2), Slab(1)
 train$vnFoundation[train$Foundation == "PConc"] <- 6
 train$vnFoundation[train$Foundation == "Wood"] <- 5
@@ -1169,7 +1132,6 @@ train$vnBsmtFinType1[train$BsmtFinType1 == "Rec"] <- 4
 train$vnBsmtFinType1[train$BsmtFinType1 == "LwQ"] <- 3
 train$vnBsmtFinType1[train$BsmtFinType1 == "Unf"] <- 2
 train$vnBsmtFinType1[is.na(train$BsmtFinType1)] <- 1
-
 train$vnBsmtFinType2[train$BsmtFinType2 == "GLQ"] <- 7
 train$vnBsmtFinType2[train$BsmtFinType2 == "ALQ"] <- 6
 train$vnBsmtFinType2[train$BsmtFinType2 == "BLQ"] <- 5
@@ -1184,7 +1146,6 @@ Heating descriu el tipus de calefacció.
 ```{r vn_Heating, echo=FALSE}
 #Comprovem quin és el SalePrice mig per a cada tipus de calefacció
 summarize(group_by(train, Heating), mean(SalePrice, na.rm=T))
-
 #Ara assignem valors numèrics a la nova variable, seguint un ordre del tipus de calefacció que dóna més valor a la vivenda al que menys: GasA(6), GasW(5), OthW(4), Wall(3), Grav(2), Floor(1)
 train$vnHeating[train$Heating == "GasA"] <- 6
 train$vnHeating[train$Heating == "GasW"] <- 5
@@ -1218,7 +1179,6 @@ Electrical descriu el tipus d'instal·lació elèctrica de la vivenda.
 ```{r vn_Electrical, echo=FALSE}
 #Comprovem quin és el SalePrice mig de les vivendes per a cada tipus d'instal·lació
 summarize(group_by(train, Electrical), mean(SalePrice, na.rm=T))
-
 #Ara assignem valors numèrics a la nova variable, seguint un ordre del tipus d'instal·lació que dóna més valor a la vivenda al que menys: SBrkr(6), NA(5), FuseA(4), FuseF(3), FuseP(2), Mix(1)
 train$vnElectrical[train$Electrical == "SBrkr"] <- 6
 train$vnElectrical[is.na(train$Electrical)] <- 5
@@ -1256,7 +1216,6 @@ GarageType, tipus de garatge.
 ```{r vn_GarageType, echo=FALSE}
 #Comprovem quin és el SalePrice mig de les vivendes segons el tipus de garatge
 summarize(group_by(train, GarageType), mean(SalePrice, na.rm=T))
-
 #Ara assignem valors numèrics a la nova variable, seguint un ordre del tipus de garatge que dóna més valor a la vivenda al que menys: BuiltIn(7), Attached(6), Basement(5), More than one type(4), Detached(3), Car Port(2), No Garage(1)
 train$vnGarageType[train$GarageType == "BuiltIn"] <- 7
 train$vnGarageType[train$GarageType == "Attchd"] <- 6
@@ -1322,7 +1281,6 @@ SaleType fa referència al tipus de venta.
 ```{r vn_SaleType, echo=FALSE}
 #Comprovem quin és el preu mitjà de venta per a les vivendes en funció del tipus de venta
 summarize(group_by(train, SaleType), mean(SalePrice, na.rm=T))
-
 #Ara assignem valors numèrics i agrupem les variables que observem que tenen preus mitjans de venta semblants.
 test$vnSaleType[test$SaleType %in% c("New", "Con")] <- 5
 test$vnSaleType[test$SaleType %in% c("CWD", "ConLI")] <- 4
@@ -1336,7 +1294,6 @@ SaleCondition descriu les condicions en que s'ha realitzat la venta.
 ```{r vn_SaleCondition, echo=FALSE}
 #Comprovem quin és el preu mitjà de venta per a les vivendes en funció de la condició de venta
 summarize(group_by(train, SaleCondition), mean(SalePrice, na.rm=T))
-
 #Ara assignem valors numèrics a les variables
 train$vnSaleCondition[train$SaleCondition == "Partial"] <- 6
 train$vnSaleCondition[train$SaleCondition == "Normal"] <- 5
@@ -1351,7 +1308,6 @@ MSZoning identifica el tipus de zona on es realitza la venta.
 ```{r vn_MSZoning, echo=FALSE}
 #Comprovem quin és el preu mitjà de venta per a les vivendes en funció de la zona de venta
 summarize(group_by(train, MSZoning), mean(SalePrice, na.rm=T))
-
 #Ara assignem valors numèrics a les variables
 test$vnMSZoning[test$MSZoning %in% c("FV")] <- 5
 test$vnMSZoning[test$MSZoning %in% c("RL")] <- 4
@@ -1365,17 +1321,210 @@ MSSubClass identifica el tipus de vivenda venuda.
 ```{r vn_MSSubClass, echo=FALSE}
 #Comprovem quin és el preu de venta mig per a les vivendes de cada tipus
 subclassprice <- summarize(group_by(train, MSSubClass),mean(SalePrice, na.rm=T))
-
 #Definim com a tipus de vivenda barata (subclass_lo) les propietats amb un preu mitjà inferior a 140.000, vivenda assequible (subclass_med) les que tenen un preu entre 140.000 i 200.000 i propietat cara (subclass_hi) els tipus de propietats que tenen un preu superior a 200.000
 subclass_lo <- filter(subclassprice, subclassprice$`mean(SalePrice, na.rm = T)` < 140000)
 subclass_med <- filter(subclassprice, subclassprice$`mean(SalePrice, na.rm = T)` < 200000 & subclassprice$`mean(SalePrice, na.rm = T)` >= 140000 )
 subclass_hi <- filter(subclassprice, subclassprice$`mean(SalePrice, na.rm = T)` >= 200000)
-
 #Finalment assignem 3 possibles valors: subclass_hi(3), subclass_med(2), subclass_lo(1)
 train$vnMSSubClass[train$MSSubClass %in% subclass_lo$MSSubClass] <- 1
 train$vnMSSubClass[train$MSSubClass %in% subclass_med$MSSubClass] <- 2
 train$vnMSSubClass[train$MSSubClass %in% subclass_hi$MSSubClass] <- 3
 ```
+
+
+A continuació s'observala correlació, donat que a les variables numèriques no seguien una distribució normal, s'aplica també Spearman sobre les variables transformades vn, afegint SalePrice al final com a variable dependent
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+train.vn <- train[,c("vnStreet","vnLotShape","vnLandContour","vnUtilities",
+"vnLandSlope","vnLotConfig","vnNeighborhood","vnCondition1","vnCondition2","vnBldgType",
+"vnHouseStyle","vnRoofStyle","vnRoofMatl","vnExterior1st","vnExterior2nd",
+"vnMasVnrType","vnExterQual","vnExterCond","vnFoundation","vnBsmtQual","vnBsmtCond",
+"vnBsmtExposure" ,"vnBsmtFinType1","vnBsmtFinType2","vnHeating","vnHeatingQC",
+"vnCentralAir","vnElectrical","vnKitchenQual" ,"vnFireplaceQu","vnGarageType",
+"vnGarageFinish","vnGarageQual","vnGarageCond","vnPavedDrive","vnFunctional",
+"vnSaleCondition","SalePrice")]
+```
+
+Spearman en les variables vn
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+corr_matrix <- matrix(nc = 2, nr = 0) 
+colnames(corr_matrix) <- c("estimate", "p-value")
+for (i in 1:(ncol(train.vn) - 1)) { 
+# if( substr(colnames(train.vn[i]), start=1, stop=2)=="vn")
+ # { 
+   spearman_test = cor.test(train.vn[,i],
+   train.vn[,length(train.vn)], method = "spearman") 
+   corr_coef = spearman_test$estimate 
+   p_val = spearman_test$p.value
+# Add row to matrix 
+   pair = matrix(ncol = 2, nrow = 1) 
+   pair[1][1] = corr_coef 
+   pair[2][1] = p_val 
+   corr_matrix <- rbind(corr_matrix, pair) 
+   rownames(corr_matrix)[nrow(corr_matrix)] <- colnames(train.vn)[i]
+  #}
+}
+print(corr_matrix)
+
+```
+
+Les variables categòriques més correlacionades amb el Preu són:
+
+vnNeighborhood: Barri. (Agrupació de barris en 3 grups segons el preu mitjà de les cases.)
+vnExterQual: Qualtitat del material al exterior      
+vnKitchenQual: Qualitat de la cuina
+vnBsmtQual: Evalua el gruix del pis que està directament relacionat amb la qualitat.
+vnGarageFinish: Mesura la qualitat del garatge
+
+
+Recordem també les variables numèriques més correlacionades eren:
+
+OverallQual: Rates the overall material and finish of the house
+GrLivArea: Above grade (ground) living area square feet
+YearBuilt: Original construction date
+GarageCars: Size of garage in car capacity
+GarageArea: Size of garage in square feet
+
+
+A continuació s'analitza la colinealitat entre aquestes variables en dos cops:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+pairs(~vnGarageFinish+GarageCars+GarageArea+GrLivArea+YearBuilt,data=train,
+   main="anàlisis colinearitat")
+```
+
+S'observa certa correlació entre Garage Area i YearBuilt.
+
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+pairs(~vnNeighborhood+vnExterQual+vnKitchenQual+vnBsmtQual+
+        OverallQual+GrLivArea,data=train,
+   main="anàlisis colinearitat")
+```
+
+s'observa una colinearitat molt més clara entre GrLivArea i OverallQual. 
+
+
+
+Comparació de barris en relació al preu de venda (Comparació de grups)
+======================================================================
+
+A la fase de creació de variables numèriques a partir de qualitatives es va veure que es podia establir un ordre en els barris d'acord amb el seu preu mitjà. A continuació es fa una prova d'hipòtesi per a comparar aquests barris com grups i determinar si són iguals en quant a la seva mitjana i homoscedasticitat. Com  ja vam veure, la variable SalePrice no seguexi una distribució normal, a continuació es fa la prova d'homoscedasticitat  amb el test de Fligner-Killeen. 
+
+Establim com a Hipòtesi 0 que les variances són iguals amb un nivell de confiança d'un 95% (nivell de significació per defecte 0.05)
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ fligner.test(SalePrice ~ Neighborhood, data = train)
+```
+
+Com que el p-value <0.05 es rebutja la hipòtesi nul·la i per tant podem dir que el preu de venda presenta variàncies estadísticament diferents segons el barri.
+
+A continuació es compara d'una forma no paramètrica les distribucions dels barris que van ser categoritzats com grup 1 i grup 2 aplicant el test de Wilcox.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+  wilcox.test(SalePrice ~ vnNeighborhood, data = train, subset = vnNeighborhood <3)
+```
+
+Per tant es comprova d'una manera més formal, que es refusa la hipòtesi nul·la perquè p-vale <0.05 que els grups de barris 1 i 2 són estadísticament diferents en quan al preu de venda de les cases.
+
+Grup de barri (segons la mitja de preus de venda. Grup 1 amb cases més barate, grup 3 amb les cases més cares) i el barri en questió.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+unique ((train[c("vnNeighborhood","Neighborhood")]))
+
+```
+
+s'analitza visualment per vnOverallQual (com a ratis en quant acabats de la casa) els barris relacionats.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+filas=dim(train)[1] #1460 rows
+ggplot(data=train[1:filas,],aes(x=OverallQual,fill=Neighborhood))+geom_bar()
+
+```
+
+S'observa per exemple que la relació de qualitat de la casa en els valors de 9-10 està present en els barris del grup 3.
+
+
+Comparació de preus de cases per decada de construcció de la casa
+==================================================================
+Hi ha una diferència entre els preus de venda dels anys 80 als anys 90?
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+train.SalePrice80s <-train$SalePrice[train$YearBuilt >1979 & train$YearBuilt <=1989]
+train.SalePrice90s <-train$SalePrice[train$YearBuilt >1989 & train$YearBuilt <=2000] 
+
+```
+
+
+Es comprova la normalitat, donat que serien subsets de la variable TotalPrice. S'usa el mètode de Kolmogorov-Smirnov 
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ks.test(train.SalePrice80s, pnorm, mean(train.SalePrice80s), sd(train.SalePrice80s)) 
+
+```
+
+
+Assumint com a hipòtesi nul·la que la població està distribuïda normalment, si el p-valor és més petit que el nivell de significació,(per defecte α=0,05) la hipòtesi nul·la es rebutjaria, però aquest no seria el cas ja que p-value és major. Per tant la distribució és normal.
+
+Es comprova si en la decada dels 90 també els preus segueixen una distribució normal
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ks.test(train.SalePrice90s, pnorm, mean(train.SalePrice90s), sd(train.SalePrice90s)) 
+
+```
+
+Segons Kolmogorov-Smirnov, la distribució no seria normal. Es comprova com tampoc ho és seguint Shapiro-Wilk.
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+shapiro.test(train.SalePrice90s)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+#transformació logarítmica
+#rlnorm(train.SalePrice90s)
+
+train.SalePrice90s.norm <- BoxCox(train.SalePrice90s, lambda = BoxCoxLambda(train.SalePrice90s)) 
+```
+
+---- continuar!!
+
+
+
+Model 1: Regressió Lineal
+=========================
+
+Es fa una aproximació de la relació de dependència lineal entre la variable a predir: Sale Price i un subset de variables abans identificades com més correlacionades amb SalesPrice.
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+lmSalePrice  = lm(SalePrice~OverallQual+YearBuilt+vnNeighborhood+vnKitchenQual
+                  +FullBath+GarageCars+GarageArea+GrLivArea,data=train) 
+summary(lmSalePrice)
+```
+
+Veiem com usant les variables originals el R-Squared millora, sent de 8.1.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+lmSalePrice  = lm(SalePrice~OverallQual+YearBuilt+Neighborhood+KitchenQual
+                  +FullBath+GarageCars+GarageArea+GrLivArea,data=train) 
+summary(lmSalePrice)
+```
+
+Amb altres variacions provades el R-Square seria menor.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+lmSalePrice  = lm(SalePrice~FullBath+YearBuilt+vnNeighborhood+vnKitchenQual
+                  +OverallQual+MasVnrArea,data=train) 
+summary(lmSalePrice)
+```
+
+
+#--- Falta Predict
+
+
 
 PREGUNTES
 ==========
