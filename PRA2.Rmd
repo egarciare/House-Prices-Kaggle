@@ -771,6 +771,8 @@ Observem com la majoria d'outliers són preus alts comparats amb la mitja que é
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 train.data = train[c("OverallQual","GrLivArea","YearBuilt","GarageCars","GarageArea","SalePrice")]
+
+
 filter(train.data,SalePrice %in% (boxplot.stats(train$SalePrice)$out))
 ```
 
@@ -1468,29 +1470,56 @@ ks.test(train.SalePrice80s, pnorm, mean(train.SalePrice80s), sd(train.SalePrice8
 ```
 
 
-Assumint com a hipòtesi nul·la que la població està distribuïda normalment, si el p-valor és més petit que el nivell de significació,(per defecte α=0,05) la hipòtesi nul·la es rebutjaria, però aquest no seria el cas ja que p-value és major. Per tant la distribució és normal.
+Assumint com a hipòtesi nul·la que la població està distribuïda normalment, Al ser el p-valor més gran que el nivell de significació,(per defecte α=0,05) la hipòtesi nul·la no es podria rebutjar i amb un 95% de confiança podríem dir que la distribució és normal.
 
-Es comprova si en la decada dels 90 també els preus segueixen una distribució normal
+En canvi passant el test de shapiro, la hipòtesi nul·la sí s'hauria de rebutjar:
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+shapiro.test(train.SalePrice80s)
+```
+
+
+
+Es comprova si en la decada dels 90  els preus segueixen una distribució normal
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 ks.test(train.SalePrice90s, pnorm, mean(train.SalePrice90s), sd(train.SalePrice90s)) 
 
 ```
 
-Segons Kolmogorov-Smirnov, la distribució no seria normal. Es comprova com tampoc ho és seguint Shapiro-Wilk.
+Segons Kolmogorov-Smirnov, la distribució dels 90 no seria normal. Es comprova com tampoc ho és seguint Shapiro-Wilk.
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 shapiro.test(train.SalePrice90s)
 ```
 
-```{r echo=TRUE, message=FALSE, warning=FALSE}
-#transformació logarítmica
-#rlnorm(train.SalePrice90s)
+Es fa el test d'homoscedasticitat per a comprovar si les variances  són iguals. 
+Es comprova l'anàlisi de variances amb el test no paramètric de Fligner. Com que el nombre d'elements en cada sample és diferent es fa un stack previ en un nou dataframe anomenat stacked:
 
-train.SalePrice90s.norm <- BoxCox(train.SalePrice90s, lambda = BoxCoxLambda(train.SalePrice90s)) 
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+stacked <- stack(list(train.SalePrice80s=train.SalePrice80s,train.SalePrice90s=train.SalePrice90s))
+ fligner.test(values ~ ind, data = stacked)
+
 ```
 
----- continuar!!
+Segons el test de Fligner-Killeen les variances seguirien una distribució similar entre SalesPrice 80 i 90.
 
+
+Es comparen els preus dels 80s amb els 90s seguint el test no paramètric de Wilcoxon i Mann-Whitney. La hipòtesi nul·la seria la igualtat de les distribucions :
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+stacked <- stack(list(train.SalePrice80s=train.SalePrice80s,train.SalePrice90s=train.SalePrice90s))
+wilcox.test(values ~ ind, data = stacked)
+#wilcox.test(values ~ ind, data = stacked, subset = Month %in% c(5, 8)) 
+```
+
+Segons el test de Wilcoxon s'observen diferències estadísticament significatives entre la venda de cases dels 80 i dels 90, ja que el p-value és inferior al valor de significació.
+
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Plot
+ggplot(train, aes(x=YearBuilt, y=SalePrice/1000)) +
+  geom_line()
+```
 
 
 Model 1: Regressió Lineal
@@ -1500,30 +1529,77 @@ Es fa una aproximació de la relació de dependència lineal entre la variable a
 
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
-lmSalePrice  = lm(SalePrice~OverallQual+YearBuilt+vnNeighborhood+vnKitchenQual
+lmSalePrice1  = lm(SalePrice~OverallQual+YearBuilt+vnNeighborhood+vnKitchenQual
                   +FullBath+GarageCars+GarageArea+GrLivArea,data=train) 
-summary(lmSalePrice)
+#summary(lmSalePrice)
 ```
 
 Veiem com usant les variables originals el R-Squared millora, sent de 8.1.
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
-lmSalePrice  = lm(SalePrice~OverallQual+YearBuilt+Neighborhood+KitchenQual
+lmSalePrice2  = lm(SalePrice~OverallQual+YearBuilt+Neighborhood+KitchenQual
                   +FullBath+GarageCars+GarageArea+GrLivArea,data=train) 
-summary(lmSalePrice)
+#summary(lmSalePrice)
 ```
 
 Amb altres variacions provades el R-Square seria menor.
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
-lmSalePrice  = lm(SalePrice~FullBath+YearBuilt+vnNeighborhood+vnKitchenQual
-                  +OverallQual+MasVnrArea,data=train) 
-summary(lmSalePrice)
+lmSalePrice3  = lm(SalePrice~FullBath+YearBuilt+vnNeighborhood+vnKitchenQual
+                  +OverallQual+GarageFinish+GrLivArea,data=train) 
+#summary(lmSalePrice)$r.squared
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+lmSalePrice4  = lm(SalePrice~FullBath+YearBuilt+Neighborhood+KitchenQual
+                  +OverallQual+GarageFinish+GrLivArea+ExterQual+vnBsmtQual+TotalBsmtSF,data=train) 
+
 ```
 
 
-#--- Falta Predict
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 
+print (paste("Model 1 -->", summary(lmSalePrice1)$r.squared))
+print (paste("Model 2 -->", summary(lmSalePrice2)$r.squared))
+print (paste("Model 3 -->", summary(lmSalePrice3)$r.squared))
+print (paste("Model 4 -->", summary(lmSalePrice4)$r.squared))
+
+```
+
+El model amb un major coeficient de determinació és el model 4, capaç d'explicar la variabilitat de les dades en un 81,5% (Adjusted R-Squared).
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+summary(lmSalePrice4)
+#table(train$Street)
+```
+
+
+Predicció de preus de cases
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+#newHousePrice <- data.frame()
+
+newHouse <- data.frame( FullBath = 2, YearBuilt = 2003, Neighborhood = "CollgCr",
+                       KitchenQual = "Gd", OverallQual = 7, GarageFinish="RFn",
+                       GrLivArea=1710, ExterQual ="Gd",vnBsmtQual=5, TotalBsmtSF=856)
+predict(lmSalePrice4, newHouse)
+
+```
+
+Aquesta new house passada al model existeix en el sistema amb el valor:208500
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+head(subset(train, select = c(FullBath,YearBuilt,Neighborhood,KitchenQual
+                          ,OverallQual,GarageFinish,GrLivArea,ExterQual,vnBsmtQual,TotalBsmtSF,SalePrice) ),1)
+```
+
+Distància de cook del model, s'observa un punt molt allunyat del model.
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+plot(cooks.distance(lmSalePrice4), pch = 16, col = "blue")
+
+```
 
 
 PREGUNTES
@@ -1568,3 +1644,6 @@ https://rpubs.com/Saskia/520216
 
 Análisis de Regresión - Alfonso Novales - Departamente de Economía Cuantitativa 2010
 https://www.ucm.es/data/cont/docs/518-2013-11-13-Analisis%20de%20Regresion.pdf
+
+StackOverflow - R - Perform a levene test with two samples with different sizes
+https://stackoverflow.com/questions/43749166/r-perform-a-levene-test-with-two-samples-with-different-sizes
