@@ -10,11 +10,6 @@ knitr::opts_chunk$set(echo = TRUE)
 options(knitr.duplicate.label = "allow")
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r Libraries, message=FALSE, warning=FALSE, echo=FALSE}
 library(readr)
@@ -41,7 +36,15 @@ library(DescTools)
  #   library(nortest)
 #}
 ##library(devtools)
+# install.packages("plotly")
+library(plotly)
 ```
+
+DESCRIPCIÓ i OBJECTIU
+======================
+Aquest dataset conté les característiques d'un conjunt de cases amb 79 variables que descriuen gairebé completament cada aspecte d'aquestes cases residencials ubicades en Ames, Iowa. Aquest data set forma part d'un challenge en Kaggle anomenat: "HousePrices: Advance Regression Techniques" on el repte és predir el preu final de cada casa. 
+
+En el dataset Hi ha 1460 obs.amb 81 atributs, on la variable a predir és contínua (SalePrice). Addicionalment a la predicció dels preus, es fa un anàlisi per barris, una comparació dels preus de venda entre els anys 80 i els 90 i un anàlisi de l'evolució del preu de venda en funció de les 4 variables temporals del dataset.
 
 S'assignen a variables el dataset de train i el de test
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
@@ -65,21 +68,12 @@ summary(train)
 str(train)
 ```
 
-
-DESCRIPCIó i OBJECTIU
-======================
-Aquest dataset conté les característiques d'un conjunt de cases amb 79 variables que descriuen gairebé completament cada aspecte d'aquestes cases residencials ubicades en Ames, Iowa. Aquest data set forma part d'un challenge en Kaggle anomenat: "HousePrices: Advance Regression Techniques" on el repte és predir el preu final de cada casa. 
-
-En el dataset Hi ha 1460 obs.amb 81 atributs, on la variable a predir és contínua (SalePrice). Addicionalment a la predicció dels preus, es fa un anàlisi per barris i una comparació dels preus de venda entre els anys 80 i els 90.
-
-
-
 Anàlisi
 =======
 
 S'identifiquen inicialment els atributs numèrics que poden ser d'interès per l'estimació del preu de la casa. Identificació atributs numèrics:
 
-OverallQual: Rates the overall material and finish of the house
+* OverallQual: Rates the overall material and finish of the house
 
        10	Very Excellent
        9	Excellent
@@ -92,7 +86,7 @@ OverallQual: Rates the overall material and finish of the house
        2	Poor
        1	Very Poor
 
-OverallCond: Rates the overall condition of the house
+* OverallCond: Rates the overall condition of the house
 
        10	Very Excellent
        9	Excellent
@@ -105,43 +99,43 @@ OverallCond: Rates the overall condition of the house
        2	Poor
        1	Very Poor
        
-YearBuilt: Original construction date
-YearRemodAdd: Remodel date (same as construction date if no remodeling or additions)
-MasVnrArea: Masonry veneer area in square feet
-BsmtFinSF1: Type 1 finished square feet
-BsmtFinSF2: Type 2 finished square feet
-BsmtUnfSF: Unfinished square feet of basement area
-# --BsmtUnfSF: Unfinished square feet of basement area
-TotalBsmtSF: Total square feet of basement area
-1stFlrSF: First Floor square feet
-2ndFlrSF: Second floor square feet
-LowQualFinSF: Low quality finished square feet (all floors)
-GrLivArea: Above grade (ground) living area square feet
-BsmtFullBath: Basement full bathrooms
-#-- BsmtHalfBath: Basement half bathrooms
-FullBath: Full bathrooms above grade
-# --HalfBath: Half baths above grade
-TotRmsAbvGrd: Total rooms above grade (does not include bathrooms)
-Bedroom: Bedrooms above grade (does NOT include basement bedrooms)
-Kitchen: Kitchens above grade
-Fireplaces: Number of fireplaces
-GarageYrBlt: Year garage was built
-GarageCars: Size of garage in car capacity
-GarageArea: Size of garage in square feet
-WoodDeckSF: Wood deck area in square feet
-OpenPorchSF: Open porch area in square feet
-EnclosedPorch: Enclosed porch area in square feet
-3SsnPorch: Three season porch area in square feet
-ScreenPorch: Screen porch area in square feet
-PoolArea: Pool area in square feet
-MiscVal: $Value of miscellaneous feature
-#--MoSold: Month Sold (MM)
-YrSold: Year Sold (YYYY)
+* YearBuilt: Original construction date
+* YearRemodAdd: Remodel date (same as construction date if no remodeling or additions)
+* MasVnrArea: Masonry veneer area in square feet
+* BsmtFinSF1: Type 1 finished square feet
+* BsmtFinSF2: Type 2 finished square feet
+* BsmtUnfSF: Unfinished square feet of basement area
+* BsmtUnfSF: Unfinished square feet of basement area
+* TotalBsmtSF: Total square feet of basement area
+* 1stFlrSF: First Floor square feet
+* 2ndFlrSF: Second floor square feet
+* LowQualFinSF: Low quality finished square feet (all floors)
+* GrLivArea: Above grade (ground) living area square feet
+* BsmtFullBath: Basement full bathrooms
+* BsmtHalfBath: Basement half bathrooms
+* FullBath: Full bathrooms above grade
+* HalfBath: Half baths above grade
+* TotRmsAbvGrd: Total rooms above grade (does not include bathrooms)
+* Bedroom: Bedrooms above grade (does NOT include basement bedrooms)
+* Kitchen: Kitchens above grade
+* Fireplaces: Number of fireplaces
+* GarageYrBlt: Year garage was built
+* GarageCars: Size of garage in car capacity
+* GarageArea: Size of garage in square feet
+* WoodDeckSF: Wood deck area in square feet
+* OpenPorchSF: Open porch area in square feet
+* EnclosedPorch: Enclosed porch area in square feet
+* 3SsnPorch: Three season porch area in square feet
+* ScreenPorch: Screen porch area in square feet
+* PoolArea: Pool area in square feet
+* MiscVal: $Value of miscellaneous feature
+* MoSold: Month Sold (MM)
+* YrSold: Year Sold (YYYY)
 
 
 A continuació, llistem també els atributs categòrics que poden influir en el preu:
 
-MSSubClass: Identifies the type of dwelling involved in the sale.	
+* MSSubClass: Identifies the type of dwelling involved in the sale.	
 
         20	1-STORY 1946 & NEWER ALL STYLES
         30	1-STORY 1945 & OLDER
@@ -160,7 +154,7 @@ MSSubClass: Identifies the type of dwelling involved in the sale.
        180	PUD - MULTILEVEL - INCL SPLIT LEV/FOYER
        190	2 FAMILY CONVERSION - ALL STYLES AND AGES
 
-MSZoning: Identifies the general zoning classification of the sale.
+* MSZoning: Identifies the general zoning classification of the sale.
 		
        A	Agriculture
        C	Commercial
@@ -172,39 +166,39 @@ MSZoning: Identifies the general zoning classification of the sale.
        RM	Residential Medium Density
 
 
-Street: Type of road access to property
+* Street: Type of road access to property
 
        Grvl	Gravel	
        Pave	Paved
        	
-Alley: Type of alley access to property
+* Alley: Type of alley access to property
 
        Grvl	Gravel
        Pave	Paved
        NA 	No alley access
 		
-LotShape: General shape of property
+* LotShape: General shape of property
 
        Reg	Regular	
        IR1	Slightly irregular
        IR2	Moderately Irregular
        IR3	Irregular
        
-LandContour: Flatness of the property
+* LandContour: Flatness of the property
 
        Lvl	Near Flat/Level	
        Bnk	Banked - Quick and significant rise from street grade to building
        HLS	Hillside - Significant slope from side to side
        Low	Depression
 		
-Utilities: Type of utilities available
+* Utilities: Type of utilities available
 		
        AllPub	All public Utilities (E,G,W,& S)	
        NoSewr	Electricity, Gas, and Water (Septic Tank)
        NoSeWa	Electricity and Gas Only
        ELO	Electricity only	
 	
-LotConfig: Lot configuration
+* LotConfig: Lot configuration
 
        Inside	Inside lot
        Corner	Corner lot
@@ -212,13 +206,13 @@ LotConfig: Lot configuration
        FR2	Frontage on 2 sides of property
        FR3	Frontage on 3 sides of property
 	
-LandSlope: Slope of property
+* LandSlope: Slope of property
 		
        Gtl	Gentle slope
        Mod	Moderate Slope	
        Sev	Severe Slope
 	
-Neighborhood: Physical locations within Ames city limits
+* Neighborhood: Physical locations within Ames city limits
 
        Blmngtn	Bloomington Heights
        Blueste	Bluestem
@@ -246,7 +240,7 @@ Neighborhood: Physical locations within Ames city limits
        Timber	Timberland
        Veenker	Veenker
 			
-Condition1: Proximity to various conditions
+* Condition1: Proximity to various conditions
 	
        Artery	Adjacent to arterial street
        Feedr	Adjacent to feeder street	
@@ -258,7 +252,7 @@ Condition1: Proximity to various conditions
        RRNe	Within 200' of East-West Railroad
        RRAe	Adjacent to East-West Railroad
 	
-Condition2: Proximity to various conditions (if more than one is present)
+* Condition2: Proximity to various conditions (if more than one is present)
 		
        Artery	Adjacent to arterial street
        Feedr	Adjacent to feeder street	
@@ -270,7 +264,7 @@ Condition2: Proximity to various conditions (if more than one is present)
        RRNe	Within 200' of East-West Railroad
        RRAe	Adjacent to East-West Railroad
 	
-BldgType: Type of dwelling
+* BldgType: Type of dwelling
 		
        1Fam	Single-family Detached	
        2FmCon	Two-family Conversion; originally built as one-family dwelling
@@ -278,7 +272,7 @@ BldgType: Type of dwelling
        TwnhsE	Townhouse End Unit
        TwnhsI	Townhouse Inside Unit
 	
-HouseStyle: Style of dwelling
+* HouseStyle: Style of dwelling
 	
        1Story	One story
        1.5Fin	One and one-half story: 2nd level finished
@@ -289,7 +283,7 @@ HouseStyle: Style of dwelling
        SFoyer	Split Foyer
        SLvl	Split Level
 
-RoofStyle: Type of roof
+* RoofStyle: Type of roof
 
        Flat	Flat
        Gable	Gable
@@ -298,7 +292,7 @@ RoofStyle: Type of roof
        Mansard	Mansard
        Shed	Shed
 		
-RoofMatl: Roof material
+* RoofMatl: Roof material
 
        ClyTile	Clay or Tile
        CompShg	Standard (Composite) Shingle
@@ -309,7 +303,7 @@ RoofMatl: Roof material
        WdShake	Wood Shakes
        WdShngl	Wood Shingles
 		
-Exterior1st: Exterior covering on house
+* Exterior1st: Exterior covering on house
 
        AsbShng	Asbestos Shingles
        AsphShn	Asphalt Shingles
@@ -329,7 +323,7 @@ Exterior1st: Exterior covering on house
        Wd Sdng	Wood Siding
        WdShing	Wood Shingles
 	
-Exterior2nd: Exterior covering on house (if more than one material)
+* Exterior2nd: Exterior covering on house (if more than one material)
 
        AsbShng	Asbestos Shingles
        AsphShn	Asphalt Shingles
@@ -349,7 +343,7 @@ Exterior2nd: Exterior covering on house (if more than one material)
        Wd Sdng	Wood Siding
        WdShing	Wood Shingles
 	
-MasVnrType: Masonry veneer type
+* MasVnrType: Masonry veneer type
 
        BrkCmn	Brick Common
        BrkFace	Brick Face
@@ -357,7 +351,7 @@ MasVnrType: Masonry veneer type
        None	None
        Stone	Stone
 
-ExterQual: Evaluates the quality of the material on the exterior 
+* ExterQual: Evaluates the quality of the material on the exterior 
 		
        Ex	Excellent
        Gd	Good
@@ -365,7 +359,7 @@ ExterQual: Evaluates the quality of the material on the exterior
        Fa	Fair
        Po	Poor
 		
-ExterCond: Evaluates the present condition of the material on the exterior
+* ExterCond: Evaluates the present condition of the material on the exterior
 		
        Ex	Excellent
        Gd	Good
@@ -373,7 +367,7 @@ ExterCond: Evaluates the present condition of the material on the exterior
        Fa	Fair
        Po	Poor
 		
-Foundation: Type of foundation
+* Foundation: Type of foundation
 		
        BrkTil	Brick & Tile
        CBlock	Cinder Block
@@ -382,7 +376,7 @@ Foundation: Type of foundation
        Stone	Stone
        Wood	Wood
 		
-BsmtQual: Evaluates the height of the basement
+* BsmtQual: Evaluates the height of the basement
 
        Ex	Excellent (100+ inches)	
        Gd	Good (90-99 inches)
@@ -391,7 +385,7 @@ BsmtQual: Evaluates the height of the basement
        Po	Poor (<70 inches
        NA	No Basement
 		
-BsmtCond: Evaluates the general condition of the basement
+* BsmtCond: Evaluates the general condition of the basement
 
        Ex	Excellent
        Gd	Good
@@ -400,7 +394,7 @@ BsmtCond: Evaluates the general condition of the basement
        Po	Poor - Severe cracking, settling, or wetness
        NA	No Basement
 	
-BsmtExposure: Refers to walkout or garden level walls
+* BsmtExposure: Refers to walkout or garden level walls
 
        Gd	Good Exposure
        Av	Average Exposure (split levels or foyers typically score average or above)	
@@ -408,7 +402,7 @@ BsmtExposure: Refers to walkout or garden level walls
        No	No Exposure
        NA	No Basement
 	
-BsmtFinType1: Rating of basement finished area
+* BsmtFinType1: Rating of basement finished area
 
        GLQ	Good Living Quarters
        ALQ	Average Living Quarters
@@ -418,7 +412,7 @@ BsmtFinType1: Rating of basement finished area
        Unf	Unfinshed
        NA	No Basement
 
-BsmtFinType2: Rating of basement finished area (if multiple types)
+* BsmtFinType2: Rating of basement finished area (if multiple types)
 
        GLQ	Good Living Quarters
        ALQ	Average Living Quarters
@@ -428,7 +422,7 @@ BsmtFinType2: Rating of basement finished area (if multiple types)
        Unf	Unfinshed
        NA	No Basement
 
-Heating: Type of heating
+* Heating: Type of heating
 		
        Floor	Floor Furnace
        GasA	Gas forced warm air furnace
@@ -437,7 +431,7 @@ Heating: Type of heating
        OthW	Hot water or steam heat other than gas
        Wall	Wall furnace
 		
-HeatingQC: Heating quality and condition
+* HeatingQC: Heating quality and condition
 
        Ex	Excellent
        Gd	Good
@@ -445,12 +439,12 @@ HeatingQC: Heating quality and condition
        Fa	Fair
        Po	Poor
 		
-CentralAir: Central air conditioning
+* CentralAir: Central air conditioning
 
        N	No
        Y	Yes
 		
-Electrical: Electrical system
+* Electrical: Electrical system
 
        SBrkr	Standard Circuit Breakers & Romex
        FuseA	Fuse Box over 60 AMP and all Romex wiring (Average)	
@@ -458,7 +452,7 @@ Electrical: Electrical system
        FuseP	60 AMP Fuse Box and mostly knob & tube wiring (poor)
        Mix	Mixed
 		
-KitchenQual: Kitchen quality
+* KitchenQual: Kitchen quality
 
        Ex	Excellent
        Gd	Good
@@ -467,7 +461,7 @@ KitchenQual: Kitchen quality
        Po	Poor
        	
 
-Functional: Home functionality (Assume typical unless deductions are warranted)
+* Functional: Home functionality (Assume typical unless deductions are warranted)
 
        Typ	Typical Functionality
        Min1	Minor Deductions 1
@@ -478,7 +472,7 @@ Functional: Home functionality (Assume typical unless deductions are warranted)
        Sev	Severely Damaged
        Sal	Salvage only
 		
-FireplaceQu: Fireplace quality
+* FireplaceQu: Fireplace quality
 
        Ex	Excellent - Exceptional Masonry Fireplace
        Gd	Good - Masonry Fireplace in main level
@@ -487,7 +481,7 @@ FireplaceQu: Fireplace quality
        Po	Poor - Ben Franklin Stove
        NA	No Fireplace
 		
-GarageType: Garage location
+* GarageType: Garage location
 		
        2Types	More than one type of garage
        Attchd	Attached to home
@@ -497,14 +491,14 @@ GarageType: Garage location
        Detchd	Detached from home
        NA	No Garage
 		
-GarageFinish: Interior finish of the garage
+* GarageFinish: Interior finish of the garage
 
        Fin	Finished
        RFn	Rough Finished	
        Unf	Unfinished
        NA	No Garage
 		
-GarageQual: Garage quality
+* GarageQual: Garage quality
 
        Ex	Excellent
        Gd	Good
@@ -513,7 +507,7 @@ GarageQual: Garage quality
        Po	Poor
        NA	No Garage
 		
-GarageCond: Garage condition
+* GarageCond: Garage condition
 
        Ex	Excellent
        Gd	Good
@@ -522,13 +516,13 @@ GarageCond: Garage condition
        Po	Poor
        NA	No Garage
 		
-PavedDrive: Paved driveway
+* PavedDrive: Paved driveway
 
        Y	Paved 
        P	Partial Pavement
        N	Dirt/Gravel
 
-PoolQC: Pool quality
+* PoolQC: Pool quality
 		
        Ex	Excellent
        Gd	Good
@@ -536,7 +530,7 @@ PoolQC: Pool quality
        Fa	Fair
        NA	No Pool
 		
-Fence: Fence quality
+* Fence: Fence quality
 		
        GdPrv	Good Privacy
        MnPrv	Minimum Privacy
@@ -544,7 +538,7 @@ Fence: Fence quality
        MnWw	Minimum Wood/Wire
        NA	No Fence
 	
-MiscFeature: Miscellaneous feature not covered in other categories
+* MiscFeature: Miscellaneous feature not covered in other categories
 		
        Elev	Elevator
        Gar2	2nd Garage (if not described in garage section)
@@ -553,7 +547,7 @@ MiscFeature: Miscellaneous feature not covered in other categories
        TenC	Tennis Court
        NA	None
 
-SaleType: Type of sale
+* SaleType: Type of sale
 		
        WD 	Warranty Deed - Conventional
        CWD	Warranty Deed - Cash
@@ -566,7 +560,7 @@ SaleType: Type of sale
        ConLD	Contract Low Down
        Oth	Other
 		
-SaleCondition: Condition of sale
+* SaleCondition: Condition of sale
 
        Normal	Normal Sale
        Abnorml	Abnormal Sale -  trade, foreclosure, short sale
@@ -590,7 +584,7 @@ Dels atributs numèrics seleccionats, s'observa que no hi ha valors na, tot i qu
 
 En els atributs categòrics sí s'aprecien valors NA, en el cas de Fence, els NA equivaldrien a no fence, i s'observa que en tots els casos els valors NA formarien part del domini. Per exemple en els següents casos: NA= No Fence, NA=No Miscellaneous o que la casa no disposa de Garatge.
 
-Fence: Fence quality
+* Fence: Fence quality
 		
        GdPrv	Good Privacy
        MnPrv	Minimum Privacy
@@ -598,8 +592,7 @@ Fence: Fence quality
        MnWw	Minimum Wood/Wire
        NA	No Fence
 
-e.g.
-MiscFeature: Miscellaneous feature not covered in other categories
+* MiscFeature: Miscellaneous feature not covered in other categories
 		
        Elev	Elevator
        Gar2	2nd Garage (if not described in garage section)
@@ -609,7 +602,7 @@ MiscFeature: Miscellaneous feature not covered in other categories
        NA	None
 
 
-GarageType:81 NA Garage location 81, el quan indica que l'any del garatge no pot omplir-se perquè no hi ha garatge. --GarageYrBlt: Year garage was built
+* GarageType:81 NA Garage location 81, el quan indica que l'any del garatge no pot omplir-se perquè no hi ha garatge. --GarageYrBlt: Year garage was built
 		
        2Types	More than one type of garage
        Attchd	Attached to home
@@ -618,20 +611,23 @@ GarageType:81 NA Garage location 81, el quan indica que l'any del garatge no pot
        CarPort	Car Port
        Detchd	Detached from home
        NA	No Garage
-		
+
+
 
 REDUCCIO DE DIMENSIONALITAT
 ===========================
 
 Donat que es té una gran quantitat d'atributs: 81 atributs es fa una reducció de la dimensionalitat.
+
 1-Donat que tenim 1460 observacions, es prescindeix dels atributs amb un nombre molt elevat de NA. (where NA >1000 NA) --> Alley, PoolQC, Fence, MiscFeature
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 train = subset(train, select = -c(Alley,PoolQC,Fence,MiscFeature) )
 ```
+
 2- Abans de fer matrius de correlació per a identificar i prescidir d'atributs amb una alta correlació entre ells (colinealitat) o amb molt poca correlació amb la variable Sale Price, es fa una prova de normalitat.
 
-2-1-Normalitat de Sale Price que és la variable dependent.
+2.1-Normalitat de Sale Price que és la variable dependent.
 
 Histograma: Per a veure les frequêncies. Es divideix per 1000 per a fer llegibles els preus. Els preus més freqüents estan entre 100k i 200k
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
@@ -655,7 +651,7 @@ shapiro.test(train$SalePrice)
 veiem com el p-value és menor a 0.05, el qual vol dir que hem de refusa la Hipòtesi 0 i per tant podem confirmar que hi ha un manca de normalitat.
 
 
-2-2- A continuació es fa la prova de normalitat de les variables numèriques usant el mètode de Shapiro-Wilk:
+2.2- A continuació es fa la prova de normalitat de les variables numèriques usant el mètode de Shapiro-Wilk:
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 library(nortest)
@@ -687,7 +683,7 @@ for (i in 1:ncol(train)) {
 
 Per tant sembla que cap de les variables numèriques no segueix una distribució normal.
 
-2-3- Tot seguit, comprovem la correlació entre els diferents atributs numèrics respecte a l'atribut SalePrice, aplicant la funció cor() que genera una matriu amb els percentatges de correlació entre les variables seleccionades.
+2.3- Tot seguit, comprovem la correlació entre els diferents atributs numèrics respecte a l'atribut SalePrice, aplicant la funció cor() que genera una matriu amb els percentatges de correlació entre les variables seleccionades.
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 cor(train[,c('OverallQual','OverallCond','YearBuilt','YearRemodAdd','MasVnrArea','BsmtFinSF1','BsmtFinSF2','BsmtUnfSF','TotalBsmtSF','1stFlrSF','2ndFlrSF','LowQualFinSF','GrLivArea','BsmtFullBath','BsmtHalfBath','FullBath','HalfBath','BedroomAbvGr','KitchenAbvGr','TotRmsAbvGrd','Fireplaces','GarageYrBlt','GarageCars','GarageArea','WoodDeckSF','OpenPorchSF','EnclosedPorch','3SsnPorch','ScreenPorch','PoolArea','MiscVal','MoSold','YrSold','SalePrice')], train['SalePrice'])
@@ -728,27 +724,27 @@ print(corr_matrix)
 
 Les variables més fortament correlacionades, observades amb valors estimats més alts són:
 
-OverallQual: Rates the overall material and finish of the house
-GrLivArea: Above grade (ground) living area square feet
-YearBuilt: Original construction date
-GarageCars: Size of garage in car capacity
-GarageArea: Size of garage in square feet
+* OverallQual: Rates the overall material and finish of the house
+* GrLivArea: Above grade (ground) living area square feet
+* YearBuilt: Original construction date
+* GarageCars: Size of garage in car capacity
+* GarageArea: Size of garage in square feet
 
 
 Les variables menys interessants són les que tenen una estimació més a prop de 0. Per tal de reduir la dimensionalitat es pot prescindir de les variables entre -0.2 i 0.2 que no tindrien massa correlació amb el Sale Price:
 
-OverallCond
-BsmtFinSF2
-BsmtUnfSF
-LowQualFinSF
-BsmtHalfBath
-KitchenAbvGr
-3SsnPorch
-ScreenPorch
-PoolArea
-MiscVal       
-MoSold
-YrSold
+* OverallCond
+* BsmtFinSF2
+* BsmtUnfSF
+* LowQualFinSF
+* BsmtHalfBath
+* KitchenAbvGr
+* 3SsnPorch
+* ScreenPorch
+* PoolArea
+* MiscVal       
+* MoSold
+* YrSold
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 train = subset(train, select = -c(OverallCond,BsmtFinSF2,BsmtUnfSF,LowQualFinSF,
@@ -871,7 +867,7 @@ La nomenclatura que farem servir per assignar aquests nous atributs serà **vn**
 
 Començarem per la variable Street, que té dos possibles valors: Grvl o Pave; és a dir el camí d'accés a la vivenda pot ser de grava o pavimentat.
 
-```{r vn_Street, echo=FALSE}
+```{r vn_Street, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem els possibles valors de la variable Street
 table(train$Street)
 #Creem la nova variable numèrica assignant 1 o 0 en funció de si el carrer està pavimentat (1) o no (0)
@@ -881,7 +877,7 @@ train$vnStreet[train$Street != "Pave"] <- 0
 
 L'atribut LotShape ens descriu la forma de la vivenda en 4 nivells desde regular (millor) fins a irregular (pitjor).
 
-```{r vn_LotShape, echo=FALSE}
+```{r vn_LotShape, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem els possibles valors de la variable LotShape
 table(train$LotShape)
 #Creem la nova variable numèrica que pot agafar 4 possibles valors: regular(4), una mica irregular (3), bastant irregular (2), irregular (1)
@@ -893,7 +889,7 @@ train$vnLotShape[train$LotShape == "IR3"] <- 1
 
 LandContour indica el desnivell de la vivenda.
 
-```{r vn_LandContour, echo=FALSE}
+```{r vn_LandContour, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem els possibles valors de la variable LandContour
 table(train$LandContour)
 #Creem la nova variable numèrica en la que considerarem únicament dos possibles valors: a nivell (1) o amb desnivell (0)
@@ -903,7 +899,7 @@ train$vnLandContour[train$LandContour != "Lvl"] <- 0
 
 Utilities descriu els serveis de que consta la vivenda.
 
-```{r vn_Utilities, echo=FALSE}
+```{r vn_Utilities, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem els possibles valors de la variable Utilities
 table(train$Utilities)
 #La nova variable numèrica prendrà 4 possibles valors: AllPub(4), NoSewr(3), NoSeWa(2), ELO(1)
@@ -915,7 +911,7 @@ train$vnUtilities[train$Utilities == "ELO"] <- 1
 
 LandSlope indica el pendent del terreny.
 
-```{r vn_LandSlope, echo=FALSE}
+```{r vn_LandSlope, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem els possibles valors de la variable LandSlope
 table(train$LandSlope)
 #La nova variable numèrica prendrà 3 possibles valors: Gtl(3), Mod(2), Sev(1)
@@ -926,7 +922,7 @@ train$vnLandSlope[train$LandSlope == "Sev"] <- 1
 
 Amb LotConfig per tal de donar un valor numèric que tingui sentit, tenint en compte que no es pot establir cap ordre de millor o pitjor per a la configuració de la propietat, el que farem es fixar-nos en el preu mig per a cada tipus de configuració. D'aquesta manera podrem ordenar de la configuració més cara a la més barata les vivendes.
 
-```{r vn_LotConfig, echo=FALSE}
+```{r vn_LotConfig, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quin és el SalePrice mig per a cadascuna de les configuracions
 summarize(group_by(train, LotConfig), mean(SalePrice, na.rm=T))
 #Ara assignem 5 possibles valors numèrics a la nova variable, seguint un ordre de configuració més valuosa a menys: CulDSac(5), FR3(4), Corner(3), FR2(2), Inside(1)
@@ -939,7 +935,7 @@ train$vnLotConfig[train$LotConfig == "Inside"] <- 1
 
 Per assignar un valor numèric a l'atribut Neighborhood farem el mateix. Definirem el preu mig de venta de les vivendes de cada veïnat, i a continuació classificarem aquests barris en 3 grups en funció del preu mig de les vivendes entre barats(1), preu mitjà(2) i cars(3).
 
-```{r vn_neighborhood, echo=FALSE}
+```{r vn_neighborhood, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quin és el preu de venta mig per a les vivendes de cadascun dels barris
 nbhdprice <- summarize(group_by(train, Neighborhood),mean(SalePrice, na.rm=T))
 #Definim com a barri barat (nbhdprice_lo) els barris amb un preu mitjà inferior a 140.000, barri mitjà (nbhdprice_med) els que tenen un preu entre 140.000 i 200.000 i barri car (nbhdprice_hi) els que les propietats tenen un preu superior a 200.000
@@ -954,7 +950,7 @@ train$vnNeighborhood[train$Neighborhood %in% nbhdprice_hi$Neighborhood] <- 3
 
 Els atributs Condition1 i Condition2 els convertirem a valors numèrics d'igual forma. I farem servir el mateix mètode que en els anteriors casos, comprovant el preu de venta mig per a cadascuna de les categories i establint un ordre per a que els valors numèrics tinguin sentit.
 
-```{r vn_conditions, echo=FALSE}
+```{r vn_conditions, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem SalePrice per cada opció
 summarize(group_by(train, Condition1),mean(SalePrice, na.rm=T))
 summarize(group_by(train, Condition2),mean(SalePrice, na.rm=T))
@@ -967,7 +963,7 @@ train$vnCondition2[!train$Condition2 %in% c("PosA", "PosN")] <- 0
 
 BldgType indica el tipus de construcció
 
-```{r vn_BldgType, echo=FALSE}
+```{r vn_BldgType, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quin és el SalePrice mig per a cada BldgType
 summarize(group_by(train, BldgType), mean(SalePrice, na.rm=T))
 #Ara assignem valors numèrics a la nova variable, seguint un ordre de tipus d'edificació de més valuosa a menys: 1Fam(5), TwnhsE(4), Twnhs(3), Duplex(2), 2fmCon(1)
@@ -980,7 +976,7 @@ train$vnBldgType[train$BldgType == "2fmCon"] <- 1
 
 HouseStyle descriu el tipus de vivenda
 
-```{r vn_HouseStyle, echo=FALSE}
+```{r vn_HouseStyle, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quin és el SalePrice mig per a cada HouseStyle
 housestyle_price <- summarize(group_by(train, HouseStyle), mean(SalePrice, na.rm=T))
 #Definim 3 categories en funció si el preu és inferior a 140.000 (housestyle_lo), es troba entre 140.000 i 200.000 (housestyle_med), o és superior a 200.000 (housestyle_hi)
@@ -995,7 +991,7 @@ train$vnHouseStyle[train$HouseStyle %in% housestyle_hi$HouseStyle] <- 3
 
 RoofStyle descriu el tipus de teulada.
 
-```{r vn_RoofStyle, echo=FALSE}
+```{r vn_RoofStyle, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quin és el SalePrice mig per a cada RoofStyle
 summarize(group_by(train, RoofStyle), mean(SalePrice, na.rm=T))
 #Ara assignem valors numèrics a la nova variable, seguint un ordre de tipus de teulada de més valuosa a menys: Shed(6), Hip(5), Flat(4), Mansard(3), Gable(2), Gambrel(1)
@@ -1009,7 +1005,7 @@ train$vnRoofStyle[train$RoofStyle == "Gambrel"] <- 1
 
 RoofMatl descriu el material amb que està feta la teulada.
 
-```{r vn_RoofMatl, echo=FALSE}
+```{r vn_RoofMatl, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quina és la mitja del SalePrice per cada RoofMatl
 summarize(group_by(train, RoofMatl), mean(SalePrice, na.rm=T))
 #Assignem valor 1 o 0 a cada material en funció de si la mitja del preu de venta de les vivendes amb teulades construides amb aquell material és superior a 200.000 (1) o inferior (0).
@@ -1019,7 +1015,7 @@ train$vnRoofMatl[!train$RoofMatl %in% c("Membran", "WdShake", "WdShngl")] <- 0
 
 Exterior1st i Exterior2nd descriuen el tipus d'acabats del recobriment exterior de les parets de la vivenda.
 
-```{r vn_Exteriors, echo=FALSE}
+```{r vn_Exteriors, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quina és la mitja del SalePrice per a cada tipus d'Exterior1st
 ext1_price <- summarize(group_by(train, Exterior1st), mean(SalePrice, na.rm=T))
 #Definim 3 categories en funció si el preu és inferior a 140.000 (ext1_lo), es troba entre 140.000 i 200.000 (ext1_med), o és superior a 200.000 (ext1_hi)
@@ -1044,14 +1040,14 @@ train$vnExterior2nd[train$Exterior2nd %in% ext2_hi$Exterior2nd] <- 3
 
 MasVnrType indica el tipus de mamposteria.
 
-```{r vn_MasVnrType, echo=FALSE}
+```{r vn_MasVnrType, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quina és la mitja del SalePrice per cada MasVnrType
 summarize(group_by(train, MasVnrType),mean(SalePrice, na.rm=T))
 ```
 
 Observem que hi han valors NA.
 
-```{r vn_MasVnrType2, echo=FALSE}
+```{r vn_MasVnrType2, echo=TRUE, message=FALSE, warning=FALSE}
 #Assignem valor 1 o 0 a cada material en funció de si la mitja del preu de venta de les vivendes amb mamposteria feta amb aquell material és superior a 200.000 (1) o inferior (0). 
 train$vnMasVnrType[train$MasVnrType %in% c("Stone", "BrkFace") | is.na(train$MasVnrType)] <- 1
 train$vnMasVnrType[!train$MasVnrType %in% c("Stone", "BrkFace") & !is.na(train$MasVnrType)] <- 0
@@ -1059,7 +1055,7 @@ train$vnMasVnrType[!train$MasVnrType %in% c("Stone", "BrkFace") & !is.na(train$M
 
 ExterQual, ens diu la qualitat dels materials emprats en els exteriors.
 
-```{r vn_ExterQual, echo=FALSE}
+```{r vn_ExterQual, echo=TRUE, message=FALSE, warning=FALSE}
 #Assignem valors numèrics de més qualitat a menys: Excellent (5), Good (4), Average/Typical (3), Fair(2), Poor (1)
 train$vnExterQual[train$ExterQual == "Ex"] <- 5
 train$vnExterQual[train$ExterQual == "Gd"] <- 4
@@ -1070,7 +1066,7 @@ train$vnExterQual[train$ExterQual == "Po"] <- 1
 
 ExterCond indica l'estat actual dels materials emprats en els exteriors.
 
-```{r vn_ExterCond, echo=FALSE}
+```{r vn_ExterCond, echo=TRUE, message=FALSE, warning=FALSE}
 #Assignem valors numèrics de més qualitat a menys: Excellent (5), Good (4), Average/Typical (3), Fair(2), Poor (1)
 train$vnExterCond[train$ExterCond == "Ex"] <- 5
 train$vnExterCond[train$ExterCond == "Gd"] <- 4
@@ -1081,7 +1077,7 @@ train$vnExterCond[train$ExterCond == "Po"] <- 1
 
 Foundation indica el tipus de fonaments de la vivenda.
 
-```{r vn_Foundation, echo=FALSE}
+```{r vn_Foundation, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quin és el SalePrice mig per a cada tipus de fonaments.
 summarize(group_by(train, Foundation), mean(SalePrice, na.rm=T))
 #Ara assignem valors numèrics a la nova variable, seguint un ordre dels fonaments més valorats als que menys: PConc(6), Wood(5), Stone(4), CBlock(3), BrkTil(2), Slab(1)
@@ -1095,7 +1091,7 @@ train$vnFoundation[train$Foundation == "Slab"] <- 1
 
 BsmtQual, indica la qualitat del soterrani en funció de la seva alçada.
 
-```{r vn_BsmtQual, echo=FALSE}
+```{r vn_BsmtQual, echo=TRUE, message=FALSE, warning=FALSE}
 #Assignem valors numèrics de més qualitat a menys: Excellent (6), Good (5), Typical (4), Fair (3), Poor (2), No Basement (1)
 train$vnBsmtQual[train$BsmtQual == "Ex"] <- 6
 train$vnBsmtQual[train$BsmtQual == "Gd"] <- 5
@@ -1107,7 +1103,7 @@ train$vnBsmtQual[is.na(train$BsmtQual)] <- 1
 
 BsmtCond, fa una evaluació general de les condicions actuals del soterrani.
 
-```{r vn_BsmtCond, echo=FALSE}
+```{r vn_BsmtCond, echo=TRUE, message=FALSE, warning=FALSE}
 #Assignem valors numèrics de més qualitat a menys: Excellent (6), Good (5), Typical (4), Fair (3), Poor (2), No Basement (1)
 train$vnBsmtCond[train$BsmtCond == "Ex"] <- 6
 train$vnBsmtCond[train$BsmtCond == "Gd"] <- 5
@@ -1119,7 +1115,7 @@ train$vnBsmtCond[is.na(train$BsmtCond)] <- 1
 
 BsmtExposure fa referència a la visibilitat del soterrani.
 
-```{r vn_BsmtExposure, echo=FALSE}
+```{r vn_BsmtExposure, echo=TRUE, message=FALSE, warning=FALSE}
 #Assignem valors numèrics de més qualitat a menys: Good Exposure (5), Average Exposure (4), Minimum Exposure (3), No Exposure (2), No Basement (1)
 train$vnBsmtExposure[train$BsmtExposure == "Gd"] <- 5
 train$vnBsmtExposure[train$BsmtExposure == "Av"] <- 4
@@ -1130,7 +1126,7 @@ train$vnBsmtExposure[is.na(train$BsmtExposure)] <- 1
 
 BsmtFinType1 i BsmtFinType2 fa referència a la qualitat del soterrani i la seva habitabilitat.
 
-```{r vn_BsmtFinType, echo=FALSE}
+```{r vn_BsmtFinType, echo=TRUE, message=FALSE, warning=FALSE}
 #Assignem valors numèrics de més qualitat a menys: Good Living Quarters (7), Average Living Quarters (6), Below Average Living Quarters (5), Average Rec Room (4), Low Quality (3), Unfinished (2), No Basement (1)
 train$vnBsmtFinType1[train$BsmtFinType1 == "GLQ"] <- 7
 train$vnBsmtFinType1[train$BsmtFinType1 == "ALQ"] <- 6
@@ -1150,7 +1146,7 @@ train$vnBsmtFinType2[is.na(train$BsmtFinType2)] <- 1
 
 Heating descriu el tipus de calefacció.
 
-```{r vn_Heating, echo=FALSE}
+```{r vn_Heating, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quin és el SalePrice mig per a cada tipus de calefacció
 summarize(group_by(train, Heating), mean(SalePrice, na.rm=T))
 #Ara assignem valors numèrics a la nova variable, seguint un ordre del tipus de calefacció que dóna més valor a la vivenda al que menys: GasA(6), GasW(5), OthW(4), Wall(3), Grav(2), Floor(1)
@@ -1164,7 +1160,7 @@ train$vnHeating[train$Heating == "Floor"] <- 1
 
 HeatingQC ens diu la qualitat i l'estat de la instal·lació de la calefacció.
 
-```{r vn_HeatingQC, echo=FALSE}
+```{r vn_HeatingQC, echo=TRUE, message=FALSE, warning=FALSE}
 #Assignem valors numèrics de més qualitat a menys: Excellent (5), Good (4), Average/Typical (3), Fair (2), Poor (1)
 train$vnHeatingQC[train$HeatingQC == "Ex"] <- 5
 train$vnHeatingQC[train$HeatingQC == "Gd"] <- 4
@@ -1175,7 +1171,7 @@ train$vnHeatingQC[train$HeatingQC == "Po"] <- 1
 
 CentralAir indica si l'habitatge té aire acondicionat central.
 
-```{r vn_CentralAir, echo=FALSE}
+```{r vn_CentralAir, echo=TRUE, message=FALSE, warning=FALSE}
 #Assignem el valor 1 si té AC i 0 si no en té.
 train$vnCentralAir[train$CentralAir == "Y"] <- 1
 train$vnCentralAir[train$CentralAir == "N"] <- 0
@@ -1183,7 +1179,7 @@ train$vnCentralAir[train$CentralAir == "N"] <- 0
 
 Electrical descriu el tipus d'instal·lació elèctrica de la vivenda.
 
-```{r vn_Electrical, echo=FALSE}
+```{r vn_Electrical, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quin és el SalePrice mig de les vivendes per a cada tipus d'instal·lació
 summarize(group_by(train, Electrical), mean(SalePrice, na.rm=T))
 #Ara assignem valors numèrics a la nova variable, seguint un ordre del tipus d'instal·lació que dóna més valor a la vivenda al que menys: SBrkr(6), NA(5), FuseA(4), FuseF(3), FuseP(2), Mix(1)
@@ -1197,7 +1193,7 @@ train$vnElectrical[train$Electrical == "Mix"] <- 1
 
 KitchenQual, valora la qualitat general de la cuina.
 
-```{r vn_KitchenQual, echo=FALSE}
+```{r vn_KitchenQual, echo=TRUE, message=FALSE, warning=FALSE}
 #Assignem valors numèrics de més qualitat a menys: Excellent (5), Good (4), Average/Typical (3), Fair (2), Poor (1)
 train$vnKitchenQual[train$KitchenQual == "Ex"] <- 5
 train$vnKitchenQual[train$KitchenQual == "Gd"] <- 4
@@ -1208,7 +1204,7 @@ train$vnKitchenQual[train$KitchenQual == "Po"] <- 1
 
 FireplaceQu, indica la qualitat del foc a terra.
 
-```{r vn_FireplaceQu, echo=FALSE}
+```{r vn_FireplaceQu, echo=TRUE, message=FALSE, warning=FALSE}
 #Assignem valors numèrics de més qualitat a menys: Excellent (6), Good (5), Average (4), Fair (3), Poor (2), No Fireplace (1)
 train$vnFireplaceQu[train$FireplaceQu == "Ex"] <- 6
 train$vnFireplaceQu[train$FireplaceQu == "Gd"] <- 5
@@ -1220,7 +1216,7 @@ train$vnFireplaceQu[is.na(train$FireplaceQu)] <- 1
 
 GarageType, tipus de garatge.
 
-```{r vn_GarageType, echo=FALSE}
+```{r vn_GarageType, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quin és el SalePrice mig de les vivendes segons el tipus de garatge
 summarize(group_by(train, GarageType), mean(SalePrice, na.rm=T))
 #Ara assignem valors numèrics a la nova variable, seguint un ordre del tipus de garatge que dóna més valor a la vivenda al que menys: BuiltIn(7), Attached(6), Basement(5), More than one type(4), Detached(3), Car Port(2), No Garage(1)
@@ -1235,7 +1231,7 @@ train$vnGarageType[is.na(train$GarageType)] <- 1
 
 GarageFinish, ens diu si l'interior del garatge està acabat o no.
 
-```{r vn_GarageFinish, echo=FALSE}
+```{r vn_GarageFinish, echo=TRUE, message=FALSE, warning=FALSE}
 #Assignem valors numèrics en funció del grau dels acabats del garatge: Finished (4), Rough Finished (3), Unfinished (2), No Garage (1)
 train$vnGarageFinish[train$GarageFinish == "Fin"] <- 4
 train$vnGarageFinish[train$GarageFinish == "RFn"] <- 3
@@ -1245,7 +1241,7 @@ train$vnGarageFinish[is.na(train$GarageFinish)] <- 1
 
 GarageQual, indica la qualitat general del garatge.
 
-```{r vn_GarageQual, echo=FALSE}
+```{r vn_GarageQual, echo=TRUE, message=FALSE, warning=FALSE}
 #Assignem valors numèrics de més qualitat a menys: Excellent (6), Good (5), Average (4), Fair (3), Poor (2), No Garage (1)
 train$vnGarageQual[train$GarageQual == "Ex"] <- 6
 train$vnGarageQual[train$GarageQual == "Gd"] <- 5
@@ -1257,7 +1253,7 @@ train$vnGarageQual[is.na(train$GarageQual)] <- 1
 
 GarageCond, indica l'estat actual del garatge.
 
-```{r vn_GarageCond, echo=FALSE}
+```{r vn_GarageCond, echo=TRUE, message=FALSE, warning=FALSE}
 #Assignem valors numèrics de més qualitat a menys: Excellent (6), Good (5), Average (4), Fair (3), Poor (2), No Garage (1)
 train$vnGarageCond[train$GarageCond == "Ex"] <- 6
 train$vnGarageCond[train$GarageCond == "Gd"] <- 5
@@ -1269,7 +1265,7 @@ train$vnGarageCond[is.na(train$GarageCond)] <- 1
 
 PavedDrive indica si la calçada està asfaltada.
 
-```{r vn_PavedDrive, echo=FALSE}
+```{r vn_PavedDrive, echo=TRUE, message=FALSE, warning=FALSE}
 #Hi han 3 possibles valors: Paved (3), Partial Pavement (2), Dirt/Gravel (1)
 train$vnPavedDrive[train$PavedDrive == "Y"] <- 3
 train$vnPavedDrive[train$PavedDrive == "P"] <- 2
@@ -1278,14 +1274,14 @@ train$vnPavedDrive[train$PavedDrive == "N"] <- 1
 
 Functional, indica la funcionalitat de l'habitatge (assumeix la opció Typical si no hi ha cap deducció garantida).
 
-```{r vn_Functional, echo=FALSE}
+```{r vn_Functional, echo=TRUE, message=FALSE, warning=FALSE}
 train$vnFunctional[train$Functional == "Typ"] <- 1
 train$vnFunctional[train$Functional != "Typ"] <- 0
 ```
 
 SaleType fa referència al tipus de venta.
 
-```{r vn_SaleType, echo=FALSE}
+```{r vn_SaleType, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quin és el preu mitjà de venta per a les vivendes en funció del tipus de venta
 summarize(group_by(train, SaleType), mean(SalePrice, na.rm=T))
 #Ara assignem valors numèrics i agrupem les variables que observem que tenen preus mitjans de venta semblants.
@@ -1298,7 +1294,7 @@ test$vnSaleType[test$SaleType %in% c("Oth")] <- 1
 
 SaleCondition descriu les condicions en que s'ha realitzat la venta.
 
-```{r vn_SaleCondition_, echo=FALSE}
+```{r vn_SaleCondition, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quin és el preu mitjà de venta per a les vivendes en funció de la condició de venta
 summarize(group_by(train, SaleCondition), mean(SalePrice, na.rm=T))
 #Ara assignem valors numèrics a les variables
@@ -1312,7 +1308,7 @@ train$vnSaleCondition[train$SaleCondition == "Adjland"] <- 1
 
 MSZoning identifica el tipus de zona on es realitza la venta.
 
-```{r vn_MSZoning, echo=FALSE}
+```{r vn_MSZoning, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quin és el preu mitjà de venta per a les vivendes en funció de la zona de venta
 summarize(group_by(train, MSZoning), mean(SalePrice, na.rm=T))
 #Ara assignem valors numèrics a les variables
@@ -1325,7 +1321,7 @@ test$vnMSZoning[test$MSZoning %in% c("C (all)")] <- 1
 
 MSSubClass identifica el tipus de vivenda venuda.
 
-```{r vn_MSSubClass, echo=FALSE}
+```{r vn_MSSubClass, echo=TRUE, message=FALSE, warning=FALSE}
 #Comprovem quin és el preu de venta mig per a les vivendes de cada tipus
 subclassprice <- summarize(group_by(train, MSSubClass),mean(SalePrice, na.rm=T))
 #Definim com a tipus de vivenda barata (subclass_lo) les propietats amb un preu mitjà inferior a 140.000, vivenda assequible (subclass_med) les que tenen un preu entre 140.000 i 200.000 i propietat cara (subclass_hi) els tipus de propietats que tenen un preu superior a 200.000
@@ -1354,7 +1350,6 @@ train.vn <- train[,c("vnStreet","vnLotShape","vnLandContour","vnUtilities",
 
 Spearman en les variables vn
 
-
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 corr_matrix <- matrix(nc = 2, nr = 0) 
 colnames(corr_matrix) <- c("estimate", "p-value")
@@ -1379,20 +1374,20 @@ print(corr_matrix)
 
 Les variables categòriques més correlacionades amb el Preu són:
 
-vnNeighborhood: Barri. (Agrupació de barris en 3 grups segons el preu mitjà de les cases.)
-vnExterQual: Qualtitat del material al exterior      
-vnKitchenQual: Qualitat de la cuina
-vnBsmtQual: Evalua el gruix del pis que està directament relacionat amb la qualitat.
-vnGarageFinish: Mesura la qualitat del garatge
+* vnNeighborhood: Barri. (Agrupació de barris en 3 grups segons el preu mitjà de les cases.)
+* vnExterQual: Qualtitat del material al exterior      
+* vnKitchenQual: Qualitat de la cuina
+* vnBsmtQual: Evalua el gruix del pis que està directament relacionat amb la qualitat.
+* vnGarageFinish: Mesura la qualitat del garatge
 
 
 Recordem també les variables numèriques més correlacionades eren:
 
-OverallQual: Rates the overall material and finish of the house
-GrLivArea: Above grade (ground) living area square feet
-YearBuilt: Original construction date
-GarageCars: Size of garage in car capacity
-GarageArea: Size of garage in square feet
+* OverallQual: Rates the overall material and finish of the house
+* GrLivArea: Above grade (ground) living area square feet
+* YearBuilt: Original construction date
+* GarageCars: Size of garage in car capacity
+* GarageArea: Size of garage in square feet
 
 
 A continuació s'analitza la colinealitat entre aquestes variables en dos cops:
@@ -1403,8 +1398,6 @@ pairs(~vnGarageFinish+GarageCars+GarageArea+GrLivArea+YearBuilt,data=train,
 ```
 
 S'observa certa correlació entre Garage Area i YearBuilt.
-
-
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 pairs(~vnNeighborhood+vnExterQual+vnKitchenQual+vnBsmtQual+
@@ -1422,7 +1415,6 @@ Comparació de barris en relació al preu de venda (Comparació de grups)
 A la fase de creació de variables numèriques a partir de qualitatives es va veure que es podia establir un ordre en els barris d'acord amb el seu preu mitjà. A continuació es fa una prova d'hipòtesi per a comparar aquests barris com grups i determinar si són iguals en quant a la seva mitjana i homoscedasticitat. Com  ja vam veure, la variable SalePrice no seguexi una distribució normal, a continuació es fa la prova d'homoscedasticitat  amb el test de Fligner-Killeen. 
 
 Establim com a Hipòtesi 0 que les variances són iguals amb un nivell de confiança d'un 95% (nivell de significació per defecte 0.05)
-
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
  fligner.test(SalePrice ~ Neighborhood, data = train)
@@ -1459,6 +1451,7 @@ S'observa per exemple que la relació de qualitat de la casa en els valors de 9-
 Comparació de preus de cases per decada de construcció de la casa
 ==================================================================
 Hi ha una diferència entre els preus de venda dels anys 80 als anys 90?
+
 Creació dels subsets:
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
@@ -1497,6 +1490,7 @@ shapiro.test(train.SalePrice90s)
 ```
 
 Es fa el test d'homoscedasticitat per a comprovar si les variances  són iguals. 
+
 Es comprova l'anàlisi de variances amb el test no paramètric de Fligner. Com que el nombre d'elements en cada sample és diferent es fa un stack previ en un nou dataframe anomenat stacked:
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
@@ -1529,7 +1523,6 @@ summary(train.SalePrice90s)
 
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
-
 # Plot
 ggplot(train, aes(x=YearBuilt, y=SalePrice/1000)) +
   geom_line()
@@ -1539,25 +1532,33 @@ ggplot(train, aes(x=YearBuilt, y=SalePrice/1000)) +
 Anàlisi de l'evolució del preu de venda al llarg dels anys
 ==========================================================
 En el nostre dataset tenim 4 variables de temps que ens poden servir per obtenir un anàlisi interessant sobre l'evolució dels preus de les vivendes al llarg del temps. Aquests 4 atributs són:
-1.YearBuilt
-2.YearRemodAdd
-3.GarageYrBlt
-4.YrSold
+
+1. YearBuilt
+2. YearRemodAdd
+3. GarageYrBlt
+4. YrSold
 
 A continuació estudiarem el preu de venda en funció d'aquestes variables de temps.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+#Tornem a llegir el dataset i agafem només les columnes que necessitem per aquest anàlisi
+trainTime <- read_csv('HousePrices/train.csv' )
+trainTime = subset(trainTime, select = c(YearBuilt, YearRemodAdd, GarageYrBlt, YrSold, SalePrice) )
+```
 
 Primer de tot observem l'evolució del preu en funció de YearBuilt, és a dir, l'any de construcció de la vivenda.
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 #Calculem la mitja del SalePrice en funció de YearBuilt
-priceYearBuilt <- summarize(group_by(train, YearBuilt), SalePriceMean = mean(SalePrice, na.rm=T), n=n())
+priceYearBuilt <- summarize(group_by(trainTime, YearBuilt), SalePriceMean = mean(SalePrice, na.rm=T), n=n())
 
 #Mostrem el gràfic fent servir el paquet plotly que ens permet interactuar amb les dades mostrades
-# install.packages("plotly")
-library(plotly)
 p <- ggplot(priceYearBuilt, aes(x=YearBuilt, y=SalePriceMean)) + geom_line() + xlab("")
 ggplotly(p)
+```
 
-#Veiem que en determinats anys el valor mitjà varia molt respecte als anys anteriors i posteriors. Això és degut a que en alguns casos tenim molt poques observacions per alguns anys concrets. Per a que la gràfica representi de forma més acurada l'evolució dels preus filtrem per a mostrar únicament els preus mitjans calculats tenint més de 5 observacions per aquell any.
+Veiem que en determinats anys el valor mitjà varia molt respecte als anys anteriors i posteriors. Això és degut a que en alguns casos tenim molt poques observacions per alguns anys concrets. Per a que la gràfica representi de forma més acurada l'evolució dels preus filtrem per a mostrar únicament els preus mitjans calculats tenint més de 5 observacions per aquell any.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 priceYearBuilt5 <- filter(priceYearBuilt, n>5)
 p5 <- ggplot(priceYearBuilt5, aes(x=YearBuilt, y=SalePriceMean)) + geom_line() + xlab("")
 ggplotly(p5)
@@ -1570,7 +1571,7 @@ Si observem el primer gràfic amb totes les dades, veiem que s'han venut algunes
 Ara observarem l'evolució dels preus per la variable YearRemodAdd.
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 #Calculem la mitja del SalePrice en funció de YearRemodAdd
-priceYearRemodAdd <- summarize(group_by(train, YearRemodAdd), SalePriceMean = mean(SalePrice, na.rm=T), n=n())
+priceYearRemodAdd <- summarize(group_by(trainTime, YearRemodAdd), SalePriceMean = mean(SalePrice, na.rm=T), n=n())
 
 #Mostrem el gràfic
 p <- ggplot(priceYearRemodAdd, aes(x=YearRemodAdd, y=SalePriceMean)) + geom_line() + xlab("")
@@ -1584,7 +1585,7 @@ Pel que fa al gràfic observem com el preu de venda és clarament més elevat co
 Comprovem ara GarageYrBlt
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 #Calculem la mitja del SalePrice en funció de GarageYrBlt
-priceGarageYrBlt <- summarize(group_by(train, GarageYrBlt), SalePriceMean = mean(SalePrice, na.rm=T), n=n())
+priceGarageYrBlt <- summarize(group_by(trainTime, GarageYrBlt), SalePriceMean = mean(SalePrice, na.rm=T), n=n())
 
 #Mostrem el gràfic
 p <- ggplot(priceGarageYrBlt, aes(x=GarageYrBlt, y=SalePriceMean)) + geom_line() + xlab("")
@@ -1596,7 +1597,7 @@ En aquest cas veiem que els resultats s'assemblen bastant als obtinguts per la v
 Finalment, mirem la variable YrSold.
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 #Calculem la mitja del SalePrice en funció de YrSold
-priceYrSold <- summarize(group_by(train, YrSold), SalePriceMean = mean(SalePrice, na.rm=T), n=n())
+priceYrSold <- summarize(group_by(trainTime, YrSold), SalePriceMean = mean(SalePrice, na.rm=T), n=n())
 
 #Mostrem el gràfic
 p <- ggplot(priceYrSold, aes(x=YrSold, y=SalePriceMean)) + geom_line() + xlab("")
@@ -1639,7 +1640,9 @@ lmSalePrice4  = lm(SalePrice~FullBath+YearBuilt+Neighborhood+KitchenQual
                   +OverallQual+GarageFinish+GrLivArea+ExterQual+BsmtQual+TotalBsmtSF,data=train) 
 
 ```
+
 Es comprova que no hi ha un guany signiifcatiu afegint moltes variables predictores.
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 lmSalePrice5  = lm(SalePrice~MSSubClass+MSZoning+Neighborhood+KitchenQual
                   +OverallQual+GarageFinish+GrLivArea+ExterQual+BsmtQual+TotalBsmtSF+
