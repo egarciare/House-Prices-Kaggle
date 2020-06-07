@@ -1635,7 +1635,12 @@ output
 
 ```
 
+S'exporta a un fitxer CSV el Id del data source de test i el preu de venda predit pel model. Aquest fitxer és el demanat al challenge de Kaggle.
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+kaggleChallenge = subset(output, select = c(Id,predictHousePrice ) )
 
+write.csv(kaggleChallenge,".\\PRA2DamEus_Submission.csv", row.names = FALSE)
+```
 
 De les 1459 observacions del datasource de test, s'observa que 116 de les prediccions han estat na i per tant el model no ha estat capaç de predir.
 
@@ -1643,7 +1648,7 @@ De les 1459 observacions del datasource de test, s'observa que 116 de les predic
 sapply(output, function(x) sum(is.na(x)))
 ```
 
-En la Distància de cook del model, s'observa un punt molt allunyat i altres pocs amb una certa distància.
+En la Distància de cook del model, s'observa un punt molt allunyat i altres amb una certa distància.
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 plot(cooks.distance(lmSalePrice4), pch = 16, col = "blue")
