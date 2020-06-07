@@ -50,7 +50,7 @@ train <- read_csv('HousePrices/train.csv' )
 test <- read_csv("HousePrices/test.csv")
 ```
 
-1-Exploració del dataset
+Exploració del dataset
 ========================
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
@@ -66,13 +66,18 @@ str(train)
 ```
 
 
-DESCRIPCIó
-===========
-Aquest dataset conté les característiques d'un conjunt de cases, atributs que les descriuen molt en detall i on l'objectiu principal és poder arribar a fer regressió del preu de venda d'aquestes cases. Per tant estaríem davant d'un problema paramètric, on a priori es podríen aplicar mètodes supervisats.
+DESCRIPCIó i OBJECTIU
+======================
+Aquest dataset conté les característiques d'un conjunt de cases amb 79 variables que descriuen gairebé completament cada aspecte d'aquestes cases residencials ubicades en Ames, Iowa. Aquest data set forma part d'un challenge en Kaggle anomenat: "HousePrices: Advance Regression Techniques" on el repte és predir el preu final de cada casa. 
 
-En el dataset Hi ha 1460 obs.amb 81 atributs, on la variable a predir és contínua (SalePrice). S'identifiquen inicialment els atributs numèrics que poden ser d'interès per l'estimació del preu de la casa.
+En el dataset Hi ha 1460 obs.amb 81 atributs, on la variable a predir és contínua (SalePrice). Addicionalment a la predicció dels preus, es fa un anàlisi per barris i una comparació dels preus de venda entre els anys 80 i els 90.
 
-Identificació atributs numèrics:
+
+
+Anàlisi
+=======
+
+S'identifiquen inicialment els atributs numèrics que poden ser d'interès per l'estimació del preu de la casa. Identificació atributs numèrics:
 
 OverallQual: Rates the overall material and finish of the house
 
@@ -583,7 +588,7 @@ sapply(train, function(x) sum(is.na(x)))
 
 Dels atributs numèrics seleccionats, s'observa que no hi ha valors na, tot i que poden haver-hi 0, per exemple en els anys. En la variable SalePrice tampoc hi ha NA.
 
-En els atributs categòrics sí s'aprecien valors NA, en el cas de Fence, els NA equivaldrien a no fence, i s'observa que en tots els casos formarien part del domini dels atributs. e.g. significant cap.
+En els atributs categòrics sí s'aprecien valors NA, en el cas de Fence, els NA equivaldrien a no fence, i s'observa que en tots els casos els valors NA formarien part del domini. Per exemple en els següents casos: NA= No Fence, NA=No Miscellaneous o que la casa no disposa de Garatge.
 
 Fence: Fence quality
 		
@@ -647,7 +652,7 @@ ks.test(train$SalePrice, pnorm, mean(train$SalePrice), sd(train$SalePrice))
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 shapiro.test(train$SalePrice)
 ```
-veiem com el p-value és menor a 0.05, el qual vol dir que la Hipòtesi 0 no és cumpleix i per tant podem confirmar que hi ha un manca de normalitat.
+veiem com el p-value és menor a 0.05, el qual vol dir que hem de refusa la Hipòtesi 0 i per tant podem confirmar que hi ha un manca de normalitat.
 
 
 2-2- A continuació es fa la prova de normalitat de les variables numèriques usant el mètode de Shapiro-Wilk:
@@ -779,7 +784,7 @@ filter(train.data,SalePrice %in% (boxplot.stats(train$SalePrice)$out))
 
 2-Variables independents:
 
-Probablement cases del segle passat.
+Probablement són cases de finals del segle XIX.
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 boxplot.stats(train$YearBuilt)$out
@@ -1293,7 +1298,7 @@ test$vnSaleType[test$SaleType %in% c("Oth")] <- 1
 
 SaleCondition descriu les condicions en que s'ha realitzat la venta.
 
-```{r vn_SaleCondition, echo=FALSE}
+```{r vn_SaleCondition_, echo=FALSE}
 #Comprovem quin és el preu mitjà de venta per a les vivendes en funció de la condició de venta
 summarize(group_by(train, SaleCondition), mean(SalePrice, na.rm=T))
 #Ara assignem valors numèrics a les variables
@@ -1433,14 +1438,14 @@ A continuació es compara d'una forma no paramètrica les distribucions dels bar
 
 Per tant es comprova d'una manera més formal, que es refusa la hipòtesi nul·la perquè p-vale <0.05 que els grups de barris 1 i 2 són estadísticament diferents en quan al preu de venda de les cases.
 
-Grup de barri (segons la mitja de preus de venda. Grup 1 amb cases més barate, grup 3 amb les cases més cares) i el barri en questió.
+Cada barri està en un grup (segons la mitja de preus de venda. Grup 1 amb els barris que tenen les cases més barates, grup 3: barris amb les cases més cares) 
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 unique ((train[c("vnNeighborhood","Neighborhood")]))
 
 ```
 
-s'analitza visualment per vnOverallQual (com a ratis en quant acabats de la casa) els barris relacionats.
+s'analitza visualment per OverallQual (ratis de qualitat en quant acabats de la casa) els barris relacionats.
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 filas=dim(train)[1] #1460 rows
@@ -1454,6 +1459,7 @@ S'observa per exemple que la relació de qualitat de la casa en els valors de 9-
 Comparació de preus de cases per decada de construcció de la casa
 ==================================================================
 Hi ha una diferència entre els preus de venda dels anys 80 als anys 90?
+Creació dels subsets:
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 train.SalePrice80s <-train$SalePrice[train$YearBuilt >1979 & train$YearBuilt <=1989]
@@ -1462,7 +1468,7 @@ train.SalePrice90s <-train$SalePrice[train$YearBuilt >1989 & train$YearBuilt <=2
 ```
 
 
-Es comprova la normalitat, donat que serien subsets de la variable TotalPrice. S'usa el mètode de Kolmogorov-Smirnov 
+Es comprova la normalitat, donat que serien subsets de la variable SalePrice. S'usa el mètode de Kolmogorov-Smirnov 
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 ks.test(train.SalePrice80s, pnorm, mean(train.SalePrice80s), sd(train.SalePrice80s)) 
@@ -1472,14 +1478,13 @@ ks.test(train.SalePrice80s, pnorm, mean(train.SalePrice80s), sd(train.SalePrice8
 
 Assumint com a hipòtesi nul·la que la població està distribuïda normalment, Al ser el p-valor més gran que el nivell de significació,(per defecte α=0,05) la hipòtesi nul·la no es podria rebutjar i amb un 95% de confiança podríem dir que la distribució és normal.
 
-En canvi passant el test de shapiro, la hipòtesi nul·la sí s'hauria de rebutjar:
+Ara bé, passant el test de shapiro, la hipòtesi nul·la sí s'hauria de rebutjar:
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 shapiro.test(train.SalePrice80s)
 ```
 
 
-
-Es comprova si en la decada dels 90  els preus segueixen una distribució normal
+Es comprova si en la decada dels 90 els preus segueixen una distribució normal
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 ks.test(train.SalePrice90s, pnorm, mean(train.SalePrice90s), sd(train.SalePrice90s)) 
@@ -1511,11 +1516,20 @@ wilcox.test(values ~ ind, data = stacked)
 #wilcox.test(values ~ ind, data = stacked, subset = Month %in% c(5, 8)) 
 ```
 
-Segons el test de Wilcoxon s'observen diferències estadísticament significatives entre la venda de cases dels 80 i dels 90, ja que el p-value és inferior al valor de significació.
+Donat que el test dona un p-value < 0.05, s'hauria de rebutjar la hipòtesi nul·la i per tant concloure que els preus són estadísticament diferents entre els 80 i els 90s
 
+
+Donat que alguns tests són positius i altres negatius, es fa una representació visual també. Es pot concloure que la mitja del preu de venda, tot i diferent, no pujaria excessivament dels 80s als 90s. Possiblement un dels factors que està impactant en la comparació paramètrica dels preus, serien alguns preus molt alts (Outliers) trobats en la dècada dels 90.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Plot
+summary(train.SalePrice80s)
+summary(train.SalePrice90s)
+```
 
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
+
 # Plot
 ggplot(train, aes(x=YearBuilt, y=SalePrice/1000)) +
   geom_line()
@@ -1552,7 +1566,21 @@ lmSalePrice3  = lm(SalePrice~FullBath+YearBuilt+vnNeighborhood+vnKitchenQual
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 lmSalePrice4  = lm(SalePrice~FullBath+YearBuilt+Neighborhood+KitchenQual
-                  +OverallQual+GarageFinish+GrLivArea+ExterQual+vnBsmtQual+TotalBsmtSF,data=train) 
+                  +OverallQual+GarageFinish+GrLivArea+ExterQual+BsmtQual+TotalBsmtSF,data=train) 
+
+```
+Es comprova que no hi ha un guany signiifcatiu afegint moltes variables predictores.
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+lmSalePrice5  = lm(SalePrice~MSSubClass+MSZoning+Neighborhood+KitchenQual
+                  +OverallQual+GarageFinish+GrLivArea+ExterQual+BsmtQual+TotalBsmtSF+
+                    LotArea+LotShape+LandContour+BldgType+HouseStyle+
+                    YearRemodAdd+Exterior1st+ExterQual+Foundation+HalfBath+
+                    BedroomAbvGr+Fireplaces+FireplaceQu+
+                    GarageCars+GarageArea+GarageQual+PavedDrive+WoodDeckSF+OpenPorchSF
+                   ,data=train)
+
+
+
 
 ```
 
@@ -1563,10 +1591,12 @@ print (paste("Model 1 -->", summary(lmSalePrice1)$r.squared))
 print (paste("Model 2 -->", summary(lmSalePrice2)$r.squared))
 print (paste("Model 3 -->", summary(lmSalePrice3)$r.squared))
 print (paste("Model 4 -->", summary(lmSalePrice4)$r.squared))
+print (paste("Model 5 -->", summary(lmSalePrice4)$r.squared))
+# no hi ha guany significatiu afegint més variables print (paste("Model 5 -->", summary(lmSalePrice5)$r.squared))
 
 ```
 
-El model amb un major coeficient de determinació és el model 4, capaç d'explicar la variabilitat de les dades en un 81,5% (Adjusted R-Squared).
+El model amb un major coeficient de determinació és el model 5, però no s'obté una guany significatiu respecte el model 4 afegint un gran nombre de variables predictores. Per tant el model triat és el model 4, capaç d'explicar la variabilitat de les dades en un 81,9% (Adjusted R-Squared).
 
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
@@ -1582,7 +1612,7 @@ Predicció de preus de cases
 
 newHouse <- data.frame( FullBath = 2, YearBuilt = 2003, Neighborhood = "CollgCr",
                        KitchenQual = "Gd", OverallQual = 7, GarageFinish="RFn",
-                       GrLivArea=1710, ExterQual ="Gd",vnBsmtQual=5, TotalBsmtSF=856)
+                       GrLivArea=1710, ExterQual ="Gd",BsmtQual="Gd", TotalBsmtSF=856)
 predict(lmSalePrice4, newHouse)
 
 ```
@@ -1592,37 +1622,49 @@ Aquesta new house passada al model existeix en el sistema amb el valor:208500
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 
 head(subset(train, select = c(FullBath,YearBuilt,Neighborhood,KitchenQual
-                          ,OverallQual,GarageFinish,GrLivArea,ExterQual,vnBsmtQual,TotalBsmtSF,SalePrice) ),1)
+                          ,OverallQual,GarageFinish,GrLivArea,ExterQual,BsmtQual,TotalBsmtSF,SalePrice) ),1)
 ```
 
-Distància de cook del model, s'observa un punt molt allunyat del model.
+Predicció del dataset de test usant el model de regressió lineal. Per Id es prediu el preu de venda. Això és també el repte demanat a Kaggle.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+predictHousePrice<- predict(lmSalePrice4, test)
+#output <- cbind(testdata, prediction)
+output <- cbind(test, predictHousePrice)
+output
+
+```
+
+
+
+De les 1459 observacions del datasource de test, s'observa que 116 de les prediccions han estat na i per tant el model no ha estat capaç de predir.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+sapply(output, function(x) sum(is.na(x)))
+```
+
+En la Distància de cook del model, s'observa un punt molt allunyat i altres pocs amb una certa distància.
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 plot(cooks.distance(lmSalePrice4), pch = 16, col = "blue")
 
 ```
 
 
-PREGUNTES
-==========
-PRINCIPAL segons competició de Kaggle: Predicció de vendes de les cases en el dataset de test, enviant un fitxer amb el id de casa i el preu de venda predit
-1-Quina és la predicció de vendes en el data set de test?
-2-Influeix més els squares meters o l'any de construcció sobre el preu? (Comparació de grups independents)
-3- Es el barri (neighbourhood) determinant en el preu de les cases.
 
-ESBORRANY
-==========
-Para fer agrupacions per un atribut i veure les vendes, e.g.
-```{r echo=TRUE, message=FALSE, warning=FALSE}
-housestyle_price <- summarize(group_by(train, HouseStyle),
-          mean(SalePrice, na.rm=T))
-housestyle_price
-```
-```{r echo=TRUE, message=FALSE, warning=FALSE}
-table(train$Street)
-```
+Conclusions
+===========
+
+Tras analitzar les característiques d'aquest data set sobre les cases de Iowa, s'observa que els valors NA són propis del domini, o almenys així es registra en la definició del data set. S'aprecien valors outliers que impacten la potència estadística, però es decideix no treurel's donat que semblen valors correctes analitzat el contexte d'altres variables que indiquen que el preu podria estar justificat, per la qualitat dels materials, any de construcció, metres del garatge o altres característiques que fan pensar que el valor és correcte. En aquest sentit hem tingut un dilema en quant a l'eliminació o tractament dels outliers per a obtenir una major potència estadística vs mantenir els valors al comprovar que tot indica que són correctes. Finalment s'ha decidit la segona opció.
+
+Es fa una reducció de la dimensionalitat: eliminant aquells atributs que tenen el valor NA en la majoria dels seus registres i aquells atributs on no s'observa cap correlació amb la variable SalePrice. Per a analitzar la correlació dels atributs categòrics es creen variables numèriques ordinals a partir de les variables qualitatives. En els casos on no es pot establir un ordre es fa una mitja del preu per cadascú de les categories de la variable i s'estableix així l'ordre. Donat que hi ha una manca de normalitat en les variables, s'aplica el test de correlació no paramètric de Spearman.
+
+Els atributs amb una més alta correlació són els incorporats al model de regressió lineal múltiple, que és el que s'usa per predir el preu en el challenge de Kaggle. El model obtingut té un coeficient de determinació d'un 82%. S'observa que en 16 casos dels 1451 observacions del dataset de test no és capaç de predir i el valor és NA. En general amb les proves fetes s'ha observat que el preu del model s'aproxima bastant al preu real.
+
+En quant a la comparació de grups, tant en la comparació del preu per barris com comparant els preus dels anys 80 i 90, s'observen diferencies estadístiques en el preu de venda, més clares en la comparació per barris i no tan evidents en la comparació de preus entre els 80 i els 90 on hi ha un lleuger aument de la mitjana dels preus i una forta presència de preus molt elevats en els anys 90 (outliers).
 
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
 
 WEBGRAPHY
 ==========
