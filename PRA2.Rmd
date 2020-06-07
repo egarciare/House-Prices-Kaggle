@@ -1536,6 +1536,76 @@ ggplot(train, aes(x=YearBuilt, y=SalePrice/1000)) +
 ```
 
 
+Anàlisi de l'evolució del preu de venda al llarg dels anys
+==========================================================
+En el nostre dataset tenim 4 variables de temps que ens poden servir per obtenir un anàlisi interessant sobre l'evolució dels preus de les vivendes al llarg del temps. Aquests 4 atributs són:
+1.YearBuilt
+2.YearRemodAdd
+3.GarageYrBlt
+4.YrSold
+
+A continuació estudiarem el preu de venda en funció d'aquestes variables de temps.
+
+Primer de tot observem l'evolució del preu en funció de YearBuilt, és a dir, l'any de construcció de la vivenda.
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+#Calculem la mitja del SalePrice en funció de YearBuilt
+priceYearBuilt <- summarize(group_by(train, YearBuilt), SalePriceMean = mean(SalePrice, na.rm=T), n=n())
+
+#Mostrem el gràfic fent servir el paquet plotly que ens permet interactuar amb les dades mostrades
+# install.packages("plotly")
+library(plotly)
+p <- ggplot(priceYearBuilt, aes(x=YearBuilt, y=SalePriceMean)) + geom_line() + xlab("")
+ggplotly(p)
+
+#Veiem que en determinats anys el valor mitjà varia molt respecte als anys anteriors i posteriors. Això és degut a que en alguns casos tenim molt poques observacions per alguns anys concrets. Per a que la gràfica representi de forma més acurada l'evolució dels preus filtrem per a mostrar únicament els preus mitjans calculats tenint més de 5 observacions per aquell any.
+priceYearBuilt5 <- filter(priceYearBuilt, n>5)
+p5 <- ggplot(priceYearBuilt5, aes(x=YearBuilt, y=SalePriceMean)) + geom_line() + xlab("")
+ggplotly(p5)
+```
+
+Veiem que excloent els anys amb poques observacions, en general, com més noves són les construccions més valor tenen les vivendes. Aquest fet té sentit, tot i que apreciem també que el preu no té una relació massa directa amb això, sinó que més aviat té a veure amb altres factors a nivell econòmic. Arribem a aquesta conclusió observant com a l'any 2009 hi ha una baixada molt pronunciada del preu de les vivendes respecte de l'any anterior, tot i ser més noves. Aquest fet és degut a l'efecte de la crisi econòmica que es va iniciar a partir del 2008 i que va afectar al preu de venda de les vivendes de nova construcció els anys següents.
+
+Si observem el primer gràfic amb totes les dades, veiem que s'han venut algunes vivendes antigues (en concret una vivenda l'any 1893 i dues l'any 1892) amb un preu molt elevat. Analitzant amb detall aquestes observacions veiem que es tracta en tots els casos de vivendes que han estat remodelades posteriorment i de gran tamany i qualitat.
+
+Ara observarem l'evolució dels preus per la variable YearRemodAdd.
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+#Calculem la mitja del SalePrice en funció de YearRemodAdd
+priceYearRemodAdd <- summarize(group_by(train, YearRemodAdd), SalePriceMean = mean(SalePrice, na.rm=T), n=n())
+
+#Mostrem el gràfic
+p <- ggplot(priceYearRemodAdd, aes(x=YearRemodAdd, y=SalePriceMean)) + geom_line() + xlab("")
+ggplotly(p)
+```
+
+En aquest cas, totes les observacions són posteriors a l'any 1950 i no hi ha cap any amb menys de 4 observacions, amb la qual cosa no cal filtrar els anys amb poques observacions. 
+
+Pel que fa al gràfic observem com el preu de venda és clarament més elevat com més recent és la remodelació de la vivenda. Aquest increment del preu és especialment pronunciat si la reforma s'ha efectuat dintre dels 3 últims anys (en el cas de la mostra del 2007 al 2010).
+
+Comprovem ara GarageYrBlt
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+#Calculem la mitja del SalePrice en funció de GarageYrBlt
+priceGarageYrBlt <- summarize(group_by(train, GarageYrBlt), SalePriceMean = mean(SalePrice, na.rm=T), n=n())
+
+#Mostrem el gràfic
+p <- ggplot(priceGarageYrBlt, aes(x=GarageYrBlt, y=SalePriceMean)) + geom_line() + xlab("")
+ggplotly(p)
+```
+
+En aquest cas veiem que els resultats s'assemblen bastant als obtinguts per la variable YearBuilt. Aquesta sebmlança té sentit, ja que en la majoria dels casos, s'acostuma a construir el garatge al mateix temps que la resta de la casa.
+
+Finalment, mirem la variable YrSold.
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+#Calculem la mitja del SalePrice en funció de YrSold
+priceYrSold <- summarize(group_by(train, YrSold), SalePriceMean = mean(SalePrice, na.rm=T), n=n())
+
+#Mostrem el gràfic
+p <- ggplot(priceYrSold, aes(x=YrSold, y=SalePriceMean)) + geom_line() + xlab("")
+ggplotly(p)
+```
+
+En aquest cas, les observacions que tenim mostren el preu de venda mig de les vivendes venudes entre els anys 2006 i 2010. Aquesta franja de temps és interessant, ja que com podem veure a la gràfica, es veu clarament la incidència de la crisi econòmica del 2008 en la baixada importantíssima dels preus de venda a partir d'aquell any.
+
+
 Model 1: Regressió Lineal
 =========================
 
