@@ -12,9 +12,10 @@ output:
     includes:
       in_header: 
   pdf_document:
-    highlight: zenburn
+    latex_engine: pdflatex
     toc: yes
   word_document: default
+always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
@@ -1534,7 +1535,7 @@ summary(train.SalePrice90s)
 ```
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
-# Plot
+#Plot
 p <- ggplot(train, aes(x=YearBuilt, y=SalePrice/1000)) + geom_line()
 ggplotly(p)
 ```
