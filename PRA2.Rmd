@@ -11,10 +11,10 @@ output:
     toc_depth: 2
     includes:
       in_header: 
-  word_document: default
   pdf_document:
     highlight: zenburn
     toc: yes
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -50,7 +50,17 @@ library(DescTools)
 ##library(devtools)
 # install.packages("plotly")
 library(plotly)
+library(knitr)
 ```
+![](imatge_dataset.png)
+
+
+******
+# Repositori Github
+******
+Repositori on es troba tota la documentació de la pràctica: https://github.com/egarciare/House-Prices-Kaggle
+
+Link a la competició de Kaggle en que es basa la pràctica: https://www.kaggle.com/c/house-prices-advanced-regression-techniques/overview
 
 
 ******
@@ -58,8 +68,18 @@ library(plotly)
 ******
 Aquest dataset conté les característiques d'un conjunt de cases amb 79 variables que descriuen gairebé completament cada aspecte d'aquestes cases residencials ubicades en Ames, Iowa. Aquest data set forma part d'un challenge en Kaggle anomenat: "HousePrices: Advance Regression Techniques" on el repte és predir el preu final de cada casa. 
 
-En el dataset Hi ha 1460 obs.amb 81 atributs, on la variable a predir és contínua (SalePrice). Addicionalment a la predicció dels preus, es fa un anàlisi per barris, una comparació dels preus de venda entre els anys 80 i els 90 i un anàlisi de l'evolució del preu de venda en funció de les 4 variables temporals del dataset.
+En el dataset Hi ha 1460 observacions amb 81 atributs, on la variable a predir és contínua (SalePrice). 
 
+Addicionalment a la predicció dels preus es pretén donar resposta a les següents preguntes:
+
+* Predicció dels preus de venda (SalePrice) de les cases en funció de els seves característiques (creació d'un model de regressió lineal).
+* Anàlisi per barris: diferència en el preu de venda en funció del barri on es troba la casa.
+* Comparació dels preus de venda entre els anys 80 i els 90: hi ha diferències significatives entre els preus de venda en aquestes dues dècades?
+* Anàlisi del preu de venda al llarg del temps: com evoluciona el preu de venda de les cases en funció de les variables temporals del dataset?
+
+******
+# Exploració del dataset
+******
 S'assignen a variables el dataset de train i el de test
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 #summary(cars)
@@ -67,10 +87,6 @@ train <- read_csv('HousePrices/train.csv' )
 test <- read_csv("HousePrices/test.csv")
 ```
 
-
-******
-# Exploració del dataset
-******
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 names(train)
 ```
@@ -768,7 +784,8 @@ MiscVal,MoSold,YrSold) )
 ## Tractament d'outliers
 
 ### Identificació
-1.Variable de classe-dependent: Sale Price
+
+#### Variable de classe-dependent: Sale Price
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 summary(train$SalePrice)
@@ -788,7 +805,7 @@ filter(train.data,SalePrice %in% (boxplot.stats(train$SalePrice)$out))
 ```
 
 
-2.Variables independents:
+#### Variables independents:
 
 Probablement són cases de finals del segle XIX.
 
@@ -1732,6 +1749,18 @@ Els atributs amb una més alta correlació són els incorporats al model de regr
 En quant a la comparació de grups, tant en la comparació del preu per barris com comparant els preus dels anys 80 i 90, s'observen diferencies estadístiques en el preu de venda, més clares en la comparació per barris i no tan evidents en la comparació de preus entre els 80 i els 90 on hi ha un lleuger augment de la mitjana dels preus i una forta presència de preus molt elevats en els anys 90 (outliers).
 
 Finalment, pel que fa a l'evolució dels preus al llarg del temps, amb l'anàlisi realitzat sobre les variables temporals del dataset hem pogut observar resultats interessants com, per exemple, el fet de que les cases reformades en els últims 2-3 anys experimenten un augment molt significatiu del seu preu de venda. O també, que amb la crisi econòmica del 2008 els preus de venda van baixar dràsticament per a tots els casos.
+
+
+******
+# Taula de contribucions
+******
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+contributions_table <- data.frame("Contribucions" = c("Investigació prèvia", "Redacció de les respostes", "Desenvolupament codi"), "Firma" = "Eusebio Garcia i Damián Martínez")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+kable(contributions_table)
+```
 
 
 ******
